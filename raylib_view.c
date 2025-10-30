@@ -175,10 +175,10 @@ static void render_start_screen() {
     DrawText("Crossy Road", SCREEN_WIDTH/2 - 100, SCREEN_HEIGHT/2 - 50, 30, WHITE);
     
     // Instruções
-    DrawText("Use WASD or Arrow Keys to move", SCREEN_WIDTH/2 - 150, SCREEN_HEIGHT/2, 20, WHITE);
-    DrawText("Reach the top to make the world scroll!", SCREEN_WIDTH/2 - 200, SCREEN_HEIGHT/2 + 30, 20, GREEN);
-    DrawText("Press SPACE to start", SCREEN_WIDTH/2 - 100, SCREEN_HEIGHT/2 + 80, 24, YELLOW);
-    DrawText("Press Q to quit", SCREEN_WIDTH/2 - 80, SCREEN_HEIGHT/2 + 110, 20, GRAY);
+    DrawText("Use WASD ou as setas para mover", SCREEN_WIDTH/2 - 150, SCREEN_HEIGHT/2, 20, WHITE);
+    DrawText("Chegue ao topo para fazer o mundo rolar!", SCREEN_WIDTH/2 - 200, SCREEN_HEIGHT/2 + 30, 20, GREEN);
+    DrawText("Pressione ESPAÇO para iniciar", SCREEN_WIDTH/2 - 100, SCREEN_HEIGHT/2 + 80, 24, YELLOW);
+    DrawText("Pressione Q para sair", SCREEN_WIDTH/2 - 80, SCREEN_HEIGHT/2 + 110, 20, GRAY);
 }
 
 // Renderiza tela de game over

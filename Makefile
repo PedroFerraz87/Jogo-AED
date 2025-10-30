@@ -29,7 +29,3 @@ clean:
 	rm -rf $(RELEASE_DIR)/$(TARGET).exe
 
 .PHONY: run clean
-
-
-
-
