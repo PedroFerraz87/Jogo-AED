@@ -67,10 +67,9 @@ static void run_game_loop(Ranking *ranking) {
 
 static void show_menu(void) {
     printf("==============================\n");
-    printf("   Nova(Velha) Inf\xC3\xA2ncIA - Crossy\n");
+    printf("   Nova(Velha) Infancia - Crossy Road\n");
     printf("==============================\n");
-    printf("1) Jogar (Terminal)\n");
-    printf("3) Jogar (Raylib)\n");
+    printf("1) Jogar \n");
     printf("2) Ver ranking\n");
     printf("0) Sair\n");
     printf("Escolha: ");
@@ -94,8 +93,6 @@ int main(void) {
         while ((c = getchar()) != '\n' && c != EOF) {}
 
         if (opcao == 1) {
-            run_game_loop(&ranking);
-        } else if (opcao == 3) {
             raylib_run_game(&ranking);
         } else if (opcao == 2) {
             utils_clear_screen();

@@ -203,7 +203,7 @@ static void render_game_over_screen(const GameState *state, const char *player_n
 
 // Função principal do jogo Raylib
 void raylib_run_game() {
-    InitWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "Nova(Velha) InfanCIA - Crossy");
+    InitWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "Nova(Velha) Infancia - Crossy Road");
     SetTargetFPS(60);
     
     GameState state;
