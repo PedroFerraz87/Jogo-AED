@@ -17,54 +17,6 @@ static void wait_any_key(void) {
     utils_disable_raw_mode();
 }
 
-static void run_game_loop(Ranking *ranking) {
-    GameState state;
-    game_init(&state, MAP_WIDTH);
-
-    utils_enable_raw_mode();
-    int running = 1;
-    while (running) {
-        int key = utils_read_key_nonblock();
-        if (key == 'Q') {
-            state.game_over = 1;
-        } else if (key != -1) {
-            game_handle_input(&state, key);
-        }
-
-        game_update(&state);
-        game_render(&state);
-        if (state.game_over) {
-            utils_disable_raw_mode();
-            printf("\nGame Over! Sua pontua\xC3\xA7\xC3\xA3o: %d\n", state.score);
-            char nome[64];
-            printf("Digite seu nome (max %d chars): ", MAX_NAME_LEN);
-            if (fgets(nome, sizeof(nome), stdin)) {
-                size_t len = strlen(nome);
-                if (len > 0 && (nome[len - 1] == '\n' || nome[len - 1] == '\r')) nome[len - 1] = '\0';
-            } else {
-                strcpy(nome, "Player");
-            }
-            ranking_add_and_sort(ranking, nome, state.score);
-            ranking_save(ranking, RANKING_FILE);
-
-            int opcao = 0;
-            printf("\nJogar novamente? (1 = sim, 0 = n\xC3\xA3o): ");
-            scanf("%d", &opcao);
-            getchar(); // consume newline
-            if (opcao == 1) {
-                game_reset(&state);
-                utils_enable_raw_mode();
-                continue;
-            } else {
-                running = 0;
-                break;
-            }
-        }
-        utils_sleep_ms(80);
-    }
-    utils_disable_raw_mode();
-}
-
 static void show_menu(void) {
     printf("==============================\n");
     printf("   Nova(Velha) Infancia - Crossy Road\n");
