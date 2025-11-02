@@ -180,39 +180,43 @@ static void ensure_safe_area(GameState *state)
    - ZERA moved_this_tick (scroll não conta como “mover a linha”)
  ------------------------------------------------------- */
  static void scroll_world_down(GameState *state)
- {
-     if (!state) return;
- 
-     for (int y = MAP_HEIGHT - 1; y > 0; --y) {
-         row_destroy(&state->rows[y]);
-         state->rows[y] = state->rows[y - 1];
-         state->rows[y - 1].queue = NULL;
-     }
- 
-     row_destroy(&state->rows[0]);
-     generate_row(&state->rows[0], state->world_position);
- 
-     // scroll não conta como "mover a linha" para empurrão do rio
-     for (int y = 0; y < MAP_HEIGHT; ++y) {
-         state->rows[y].moved_this_tick = 0;
-     }
- 
-     ensure_safe_area(state);
- 
-     state->world_position++;
-     state->score++;
- 
-     // 🔸 Empurra o player PARA BAIXO quando o mapa sobe
-     state->player_y++;
- 
-     // 🔸 Se o mapa "passou" do player (saiu da tela), morre (igual Crossy Road)
-     if (state->player_y >= MAP_HEIGHT) {
-         state->game_over = 1;
-         return;
-     }
- 
-     state->just_scrolled = 1;
- }
+{
+    if (!state) return;
+
+    // Desce todas as linhas
+    for (int y = MAP_HEIGHT - 1; y > 0; --y) {
+        row_destroy(&state->rows[y]);
+        state->rows[y] = state->rows[y - 1];
+        state->rows[y - 1].queue = NULL; // evita dono duplicado
+    }
+
+    // Gera nova linha no topo
+    row_destroy(&state->rows[0]);
+    generate_row(&state->rows[0], state->world_position);
+
+    // Scroll não conta como "mover a linha" (zera flag de empurrão)
+    for (int y = 0; y < MAP_HEIGHT; ++y) {
+        state->rows[y].moved_this_tick = 0;
+    }
+
+    ensure_safe_area(state);
+
+    // Avanço lógico do mundo
+    state->world_position++;
+    state->world_head++;           // << NOVO: 1 linha absoluta nova nasceu no topo
+
+    // O mapa sobe => o player "desce" uma linha visualmente
+    state->player_y++;
+
+    // Se o mapa passou do player (saiu da tela), Game Over
+    if (state->player_y >= MAP_HEIGHT) {
+        state->game_over = 1;
+        return;
+    }
+
+    state->just_scrolled = 1;      // evita empurrão do rio neste frame
+}
+
  
 
 /* -------------------------------------------------------
@@ -233,8 +237,9 @@ void game_init(GameState *state, int width)
     state->player_x = width / 2;
     state->player_y = MAP_HEIGHT - 2; // começa 1 acima do rodapé
     state->score = 0;
-    state->max_row_reached = state->player_y; 
+    state->world_head = 0;
     state->game_over = 0;
+    state->min_abs_reached = state->world_head + state->player_y;
 
     state->world_position = MAP_HEIGHT;
     state->just_scrolled = 0;
@@ -439,32 +444,50 @@ void game_render(const GameState *state)
    INPUT / CONTROLES
    - Player livre (sem ancoragem/câmera).
  ------------------------------------------------------- */
-void game_handle_input(GameState *state, int key)
-{
-    if (!state || state->game_over) return;
-
-    if (key == 'W') {
-            state->player_y--;
-        if (state->player_y < state->max_row_reached) {
-            state->score++;
-            state->max_row_reached = state->player_y;
-        }
-}
-           
-    } else if (key == 'S') {
-        if (state->player_y < MAP_HEIGHT - 1) {
-            state->player_y++;
-        }
-    } else if (key == 'A') {
-        state->player_x--;
-    } else if (key == 'D') {
-        state->player_x++;
-    }
-
-    // clamp horizontal
-    if (state->player_x < 0)                  state->player_x = 0;
-    if (state->player_x >= MAP_WIDTH)         state->player_x = MAP_WIDTH - 1;
-
-    // colisão após movimento manual
-    check_collision(state);
-}
+ void game_handle_input(GameState *state, int key)
+ {
+     if (!state || state->game_over) return;
+ 
+     int old_x = state->player_x;
+     int old_y = state->player_y;
+ 
+     // movimento
+     if (key == 'W') {
+         if (state->player_y > 0) state->player_y--;
+     } else if (key == 'S') {
+         if (state->player_y < MAP_HEIGHT - 1) state->player_y++;
+     } else if (key == 'A') {
+         if (state->player_x > 0) state->player_x--;
+     } else if (key == 'D') {
+         if (state->player_x < MAP_WIDTH - 1) state->player_x++;
+     } else if (key == 'Q') {
+         state->game_over = 1;
+     }
+ 
+     // clamps
+     if (state->player_x < 0)               state->player_x = 0;
+     if (state->player_x >= MAP_WIDTH)      state->player_x = MAP_WIDTH - 1;
+     if (state->player_y < 0)               state->player_y = 0;
+     if (state->player_y >= MAP_HEIGHT)     state->player_y = MAP_HEIGHT - 1;
+ 
+     // colisão após mover
+     check_collision(state);
+ 
+     if (!state->game_over) {
+         // linha absoluta atual do player (topo do mundo + y visual)
+         int abs_now = state->world_head + state->player_y;
+ 
+         // pontua apenas quando pisa numa linha absoluta "mais alta" (nunca visitada)
+         if (abs_now < state->min_abs_reached) {
+             state->score++;
+             state->min_abs_reached = abs_now;
+         }
+     } else {
+         // se morreu, desfaz movimento visualmente
+         state->player_x = old_x;
+         state->player_y = old_y;
+     }
+ }
+ 
+ 
+ 
