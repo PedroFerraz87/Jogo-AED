@@ -36,10 +36,11 @@ typedef struct GameState {
     Row rows[MAP_HEIGHT];
     int player_x;           // coluna do jogador
     int player_y;           // linha do jogador
-    int score;              // progresso/pontuação
+    int score;              // pontuação
     int game_over;          // flag de término
     int world_position;  
     int just_scrolled;   // posição global do “mundo” (para geração de linhas)
+    int max_row_reached;
 } GameState;
 
 void game_init(GameState *state, int width);

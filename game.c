@@ -233,6 +233,7 @@ void game_init(GameState *state, int width)
     state->player_x = width / 2;
     state->player_y = MAP_HEIGHT - 2; // começa 1 acima do rodapé
     state->score = 0;
+    state->max_row_reached = state->player_y; 
     state->game_over = 0;
 
     state->world_position = MAP_HEIGHT;
@@ -443,10 +444,13 @@ void game_handle_input(GameState *state, int key)
     if (!state || state->game_over) return;
 
     if (key == 'W') {
-        if (state->player_y > 0) {
             state->player_y--;
-            state->score++;   // pontue por avançar, se quiser
+        if (state->player_y < state->max_row_reached) {
+            state->score++;
+            state->max_row_reached = state->player_y;
         }
+}
+           
     } else if (key == 'S') {
         if (state->player_y < MAP_HEIGHT - 1) {
             state->player_y++;
