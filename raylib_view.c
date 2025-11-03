@@ -190,7 +190,7 @@ static void render_game_over_screen(const GameState *state, const char *player_n
     
     // Score
     DrawText(TextFormat("Final Score: %d", state->score), SCREEN_WIDTH/2 - 100, SCREEN_HEIGHT/2 - 50, 24, WHITE);
-    DrawText(TextFormat("World Reached: %d", state->world_position), SCREEN_WIDTH/2 - 120, SCREEN_HEIGHT/2 - 20, 20, YELLOW);
+    // DrawText(TextFormat("World Reached: %d", state->world_position), SCREEN_WIDTH/2 - 120, SCREEN_HEIGHT/2 - 20, 20, YELLOW);
     
     // Player name
     DrawText(TextFormat("Player: %s", player_name), SCREEN_WIDTH/2 - 80, SCREEN_HEIGHT/2 + 10, 20, GREEN);

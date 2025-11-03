@@ -29,7 +29,7 @@ static void apply_river_push(GameState *state);
 static void check_collision(GameState *state);
 
 /* -------------------------------------------------------
-   PREENCHIMENTO COM OBSTÁCULOS + GAPS
+   PREENCHIMENTO COM OBSTÁCULOS + GAPSF
  ------------------------------------------------------- */
 static void fill_row_with_gaps(CircularQueue *q, char obstacle,
                                int obsMin, int obsMax,
@@ -183,67 +183,90 @@ static void ensure_safe_area(GameState *state)
 {
     if (!state) return;
 
-    // Desce todas as linhas
+    // --- DESCE TODAS AS LINHAS (SCROLL) ---
     for (int y = MAP_HEIGHT - 1; y > 0; --y) {
-        row_destroy(&state->rows[y]);
-        state->rows[y] = state->rows[y - 1];
-        state->rows[y - 1].queue = NULL; // evita dono duplicado
+        row_destroy(&state->rows[y]);          // libera memória da linha atual
+        state->rows[y] = state->rows[y - 1];   // copia a linha de cima para baixo
+        state->rows[y - 1].queue = NULL;       // evita ponteiro duplicado (double free)
     }
 
-    // Gera nova linha no topo
-    row_destroy(&state->rows[0]);
-    generate_row(&state->rows[0], state->world_position);
+    // --- GERA UMA NOVA LINHA NO TOPO ---
+    row_destroy(&state->rows[0]);              // libera topo antigo (se houver)
+    generate_row(&state->rows[0], state->world_position); // cria nova linha de mundo
 
-    // Scroll não conta como "mover a linha" (zera flag de empurrão)
+    // --- ZERA FLAGS DE MOVIMENTO (scroll não conta como "mover linha") ---
     for (int y = 0; y < MAP_HEIGHT; ++y) {
         state->rows[y].moved_this_tick = 0;
     }
 
-    ensure_safe_area(state);
+    ensure_safe_area(state);                   // mantém as áreas seguras (grama)
 
-    // Avanço lógico do mundo
-    state->world_position++;
-    state->world_head++;           // << NOVO: 1 linha absoluta nova nasceu no topo
+    // --- AVANÇO LÓGICO DO MUNDO ---
+    state->world_position++;                   // contador global de linhas geradas
+    state->world_head++;                       // uma nova linha "absoluta" nasceu no topo
 
-    // O mapa sobe => o player "desce" uma linha visualmente
+    // --- AJUSTE VISUAL DO PLAYER ---
+    // O mapa sobe => o player "desce" 1 linha visualmente
     state->player_y++;
 
-    // Se o mapa passou do player (saiu da tela), Game Over
+    // --- SINCRONIZAÇÃO DE PROGRESSO ---
+    // O scroll faz o "abs" do player aumentar +2 (world_head+1 e player_y+1)
+    // Então sincronizamos os valores para não precisar de 2 passos de W para pontuar.
+    state->last_abs += 2;           // mantém o histórico alinhado
+    state->min_abs_reached += 2;    // também move o limite de progresso
+    state->advanced_this_tick = 0;  // neste frame, o player não subiu manualmente
+
+    // --- GAME OVER SE SAIU DA TELA ---
     if (state->player_y >= MAP_HEIGHT) {
         state->game_over = 1;
         return;
     }
 
-    state->just_scrolled = 1;      // evita empurrão do rio neste frame
+    // --- FLAG DE RESPIRO ---
+    state->just_scrolled = 1;       // evita empurrão do rio neste frame
 }
+
 
  
 
 /* -------------------------------------------------------
    INIT / RESET
  ------------------------------------------------------- */
-void game_init(GameState *state, int width)
-{
-    if (!state) return;
-
-    state->world_position = 0;
-
-    for (int y = 0; y < MAP_HEIGHT; ++y) {
-        generate_row(&state->rows[y], y);
-    }
-
-    ensure_safe_area(state);
-
-    state->player_x = width / 2;
-    state->player_y = MAP_HEIGHT - 2; // começa 1 acima do rodapé
-    state->score = 0;
-    state->world_head = 0;
-    state->game_over = 0;
-    state->min_abs_reached = state->world_head + state->player_y;
-
-    state->world_position = MAP_HEIGHT;
-    state->just_scrolled = 0;
-}
+ void game_init(GameState *state, int width)
+ {
+     if (!state) return;
+ 
+     state->world_position = 0;
+ 
+     // Gera o buffer inicial de linhas visíveis
+     for (int y = 0; y < MAP_HEIGHT; ++y) {
+         generate_row(&state->rows[y], y);
+     }
+ 
+     ensure_safe_area(state);
+ 
+     // Posição inicial do player (centralizado no X, 1 acima do rodapé no Y)
+     state->player_x = width / 2;
+     state->player_y = MAP_HEIGHT - 2;
+ 
+     // Estado base do jogo
+     state->score        = 0;
+     state->world_head   = 0;  // 0 linhas absolutas "nascidas" no topo ainda
+     state->game_over    = 0;
+ 
+     // ===== Referenciais de progresso =====
+     // Posição absoluta inicial do player no mundo
+     int abs0 = state->world_head + state->player_y;
+ 
+     state->min_abs_reached   = abs0;  // melhor (menor) linha absoluta já alcançada
+     state->last_abs          = abs0;  // histórico p/ sincronizar com scroll
+     state->advanced_this_tick = 0;    // neste frame ainda não avançou verticalmente
+ 
+     // Outros controles
+     state->world_position = MAP_HEIGHT; // mantém seu comportamento original
+     state->just_scrolled  = 0;          // nenhum scroll ocorreu ainda
+ }
+ 
 
 void game_reset(GameState *state)
 {
@@ -445,49 +468,60 @@ void game_render(const GameState *state)
    - Player livre (sem ancoragem/câmera).
  ------------------------------------------------------- */
  void game_handle_input(GameState *state, int key)
- {
-     if (!state || state->game_over) return;
- 
-     int old_x = state->player_x;
-     int old_y = state->player_y;
- 
-     // movimento
-     if (key == 'W') {
-         if (state->player_y > 0) state->player_y--;
-     } else if (key == 'S') {
-         if (state->player_y < MAP_HEIGHT - 1) state->player_y++;
-     } else if (key == 'A') {
-         if (state->player_x > 0) state->player_x--;
-     } else if (key == 'D') {
-         if (state->player_x < MAP_WIDTH - 1) state->player_x++;
-     } else if (key == 'Q') {
-         state->game_over = 1;
-     }
- 
-     // clamps
-     if (state->player_x < 0)               state->player_x = 0;
-     if (state->player_x >= MAP_WIDTH)      state->player_x = MAP_WIDTH - 1;
-     if (state->player_y < 0)               state->player_y = 0;
-     if (state->player_y >= MAP_HEIGHT)     state->player_y = MAP_HEIGHT - 1;
- 
-     // colisão após mover
-     check_collision(state);
- 
-     if (!state->game_over) {
-         // linha absoluta atual do player (topo do mundo + y visual)
-         int abs_now = state->world_head + state->player_y;
- 
-         // pontua apenas quando pisa numa linha absoluta "mais alta" (nunca visitada)
-         if (abs_now < state->min_abs_reached) {
-             state->score++;
-             state->min_abs_reached = abs_now;
-         }
-     } else {
-         // se morreu, desfaz movimento visualmente
-         state->player_x = old_x;
-         state->player_y = old_y;
-     }
- }
+{
+    if (!state || state->game_over) return;      // Sem estado ou jogo encerrado: não faz nada.
+
+    int old_x = state->player_x;                 // Guarda posição anterior para desfazer se morrer.
+    int old_y = state->player_y;
+
+    // --- MOVIMENTO (WASD) ---
+    if (key == 'W') {                            // Sobe 1 linha (se não está no topo visível).
+        if (state->player_y > 0) state->player_y--;
+    } else if (key == 'S') {                     // Desce 1 linha (se não está no rodapé visível).
+        if (state->player_y < MAP_HEIGHT - 1) state->player_y++;
+    } else if (key == 'A') {                     // Esquerda (se não está na borda).
+        if (state->player_x > 0) state->player_x--;
+    } else if (key == 'D') {                     // Direita (se não está na borda).
+        if (state->player_x < MAP_WIDTH - 1) state->player_x++;
+    } else if (key == 'Q') {                     // Sair.
+        state->game_over = 1;
+    }
+
+    // --- LIMITES DA TELA (clamp) ---
+    if (state->player_x < 0)               state->player_x = 0;
+    if (state->player_x >= MAP_WIDTH)      state->player_x = MAP_WIDTH - 1;
+    if (state->player_y < 0)               state->player_y = 0;
+    if (state->player_y >= MAP_HEIGHT)     state->player_y = MAP_HEIGHT - 1;
+
+    // --- COLISÃO APÓS MOVER ---
+    check_collision(state);
+
+    // --- FLAG: avançou verticalmente para cima neste frame? ---
+    // (Só consideramos "avanço" se o player realmente subiu 1 linha: y diminuiu.)
+    state->advanced_this_tick = (!state->game_over && state->player_y < old_y) ? 1 : 0;
+
+    if (!state->game_over) {
+        // Linha absoluta atual do player no mundo (independe do scroll visual).
+        int abs_now = state->world_head + state->player_y;
+
+        // --- PONTUAÇÃO ROBUSTA ---
+        // Pontua SOMENTE se houve avanço para cima neste frame E a linha absoluta é inédita
+        // (abs_now menor que o melhor já alcançado).
+        if (state->advanced_this_tick && abs_now < state->min_abs_reached) {
+            state->score++;
+            state->min_abs_reached = abs_now;
+        }
+
+        // Atualiza histórico para próximos frames (mantido alinhado no scroll).
+        state->last_abs = abs_now;
+    } else {
+        // Morreu: restaura posição visual para não "teleportar" o cadáver.
+        state->player_x = old_x;
+        state->player_y = old_y;
+        state->advanced_this_tick = 0;           // Não houve avanço válido.
+    }
+}
+
  
  
  

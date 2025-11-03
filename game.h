@@ -44,6 +44,8 @@ typedef struct GameState {
 
     int world_head;       // NOVO: quantas linhas já nasceram no topo (quantos scrolls)
     int min_abs_reached;  // NOVO: menor índice absoluto já alcançado (melhor progresso)
+    int  last_abs;          // NOVO: abs do frame anterior (usado p/ detectar avanço real)
+    int  advanced_this_tick;// NOVO: 1 se subiu y neste frame (player_y diminuiu)
 } GameState;
 
 void game_init(GameState *state, int width);
