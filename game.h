@@ -1,7 +1,7 @@
 #ifndef GAME_H
 #define GAME_H
 
-#include "fila.h"
+#include "lista.h"
 
 // Map configuration
 #define MAP_WIDTH  31
