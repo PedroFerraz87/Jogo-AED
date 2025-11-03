@@ -30,8 +30,3 @@ void ranking_insertion_sort(Ranking *ranking);
 void ranking_print(const Ranking *ranking, int max_rows);
 
 #endif // RANKING_H
-
-
-
-
-

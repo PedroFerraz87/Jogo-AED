@@ -73,8 +73,3 @@ int queue_count_char(const CircularQueue *queue, char ch) {
     }
     return count;
 }
-
-
-
-
-
