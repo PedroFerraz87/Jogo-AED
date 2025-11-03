@@ -10,7 +10,7 @@
 
 ## Como compilar (já com a biblioteca Raylib instalada)
 1. cd /c/Users/Lenovo/Documents/GitHub/Jogo-AED   
-2. gcc -Wall -std=c99 -DENABLE_RAYLIB main.c game.c fila.c ranking.c utils.c raylib_view.c -lraylib -lopengl32 -lgdi32 -lwinmm -o crossy.exe
+2. gcc -Wall -std=c99 -DENABLE_RAYLIB main.c game.c lista.c ranking.c utils.c raylib_view.c -lraylib -lopengl32 -lgdi32 -lwinmm -o crossy.exe
 3. ./crossy.exe
 
 
