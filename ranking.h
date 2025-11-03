@@ -14,19 +14,10 @@ typedef struct Ranking {
     int count;
 } Ranking;
 
-// Loads ranking from file. If file missing, starts empty.
+// Carrega ranking do arquivo
 void ranking_load(Ranking *ranking, const char *filepath);
 
-// Saves ranking to file.
-void ranking_save(const Ranking *ranking, const char *filepath);
-
-// Adds new score (name truncated if needed), then sorts.
-void ranking_add_and_sort(Ranking *ranking, const char *name, int score);
-
-// Insertion sort (descending by score). Stable by name when equal.
-void ranking_insertion_sort(Ranking *ranking);
-
-// Displays ranking to terminal.
-void ranking_print(const Ranking *ranking, int max_rows);
+// Função principal: adiciona pontuação, ordena com insertion sort e salva automaticamente
+void ranking_add(Ranking *ranking, const char *name, int score, const char *filepath);
 
 #endif // RANKING_H

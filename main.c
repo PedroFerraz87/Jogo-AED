@@ -48,8 +48,13 @@ int main(void) {
             raylib_run_game(&ranking);
         } else if (opcao == 2) {
             utils_clear_screen();
-            ranking_insertion_sort(&ranking);
-            ranking_print(&ranking, 20);
+            printf("===== RANKING =====\n");
+            for (int i = 0; i < ranking.count && i < 20; ++i) {
+                printf("%2d) %-20s %6d\n", i + 1, ranking.items[i].name, ranking.items[i].score);
+            }
+            if (ranking.count == 0) {
+                printf("(vazio)\n");
+            }
             printf("\n");
             wait_any_key();
         } else if (opcao == 0) {
