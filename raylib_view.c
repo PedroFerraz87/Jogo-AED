@@ -240,10 +240,6 @@ void raylib_run_game() {
 
     while (!WindowShouldClose()) {
         // Atalho global para sair
-        if (IsKeyPressed(KEY_Q)) {
-            exit_requested = 1;
-        }
-
         // --- INPUT / LÓGICA POR TELA ---
         switch (current_screen) {
             case GAME_START_SCREEN: { // MENU
@@ -285,7 +281,7 @@ void raylib_run_game() {
                 }
 
                 // ESC durante o jogo: volta ao MENU
-                if (IsKeyPressed(KEY_ESCAPE)) {
+                if (IsKeyPressed(KEY_M)) {
                     current_screen = GAME_START_SCREEN;
                 }
             } break;
@@ -297,21 +293,21 @@ void raylib_run_game() {
                     current_screen = GAME_PLAYING;
                 }
                 // M ou ESC: volta ao MENU
-                if (IsKeyPressed(KEY_M) || IsKeyPressed(KEY_ESCAPE)) {
+                if (IsKeyPressed(KEY_M)) {
                     current_screen = GAME_START_SCREEN;
                 }
             } break;
 
             case GAME_HELP_SCREEN: {
-                // Apenas instruções; ESC volta ao MENU
-                if (IsKeyPressed(KEY_ESCAPE)) {
+                // Apenas instruções; M volta ao MENU
+                if (IsKeyPressed(KEY_M)) {
                     current_screen = GAME_START_SCREEN;
                 }
             } break;
 
             case GAME_RANKING_SCREEN: {
                 // Apenas visualização do ranking; ESC volta ao MENU
-                if (IsKeyPressed(KEY_ESCAPE)) {
+                if (IsKeyPressed(KEY_M)) {
                     current_screen = GAME_START_SCREEN;
                 }
             } break;
@@ -363,14 +359,14 @@ static void render_help_screen(void)
     DrawText("- O mapa sobe automaticamente a cada intervalo", x, y, 22, WHITE); y += lh;
     DrawText("- Pontue ao alcançar linhas ainda não visitadas", x, y, 22, WHITE); y += lh + 10;
 
-    DrawText("ESC para voltar ao menu", x, y, 22, GRAY);
+    DrawText("'M' para voltar ao menu", x, y, 22, GRAY);
 }
 
 static void render_ranking_screen(const Ranking *ranking)
 {
     ClearBackground(BLACK);
     DrawText("Ranking", SCREEN_WIDTH/2 - 70, 80, 32, YELLOW);
-    DrawText("ESC para voltar ao menu", SCREEN_WIDTH/2 - 120, 120, 20, GRAY);
+    DrawText("'M' para voltar ao menu", SCREEN_WIDTH/2 - 120, 120, 20, GRAY);
 
     int x = SCREEN_WIDTH/2 - 220;
     int y = 170;
