@@ -1,6 +1,8 @@
 Player;146
 Pedro;34
+julia;34
 Player;32
+Caio;28
 Player;21
 Player;18
 Player;17

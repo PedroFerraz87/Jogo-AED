@@ -1,5 +1,5 @@
 #include "raylib_view.h"
-#include <raylib.h>
+#include "raylib.h"
 #include "game.h"
 #include "ranking.h"
 #include "utils.h"
@@ -386,21 +386,14 @@ static void render_ranking_screen(const Ranking *ranking)
     int y = 170;
     int lh = 28;
 
-    // Exemplo suposto: ranking.count e ranking.items[i].name / .score
-    // Mostra top 10
     int maxShow = 10;
     int n = 0;
 
-    for (int i = 0; i < /*ranking->count*/ 0 /*<-- troque para ranking->count*/ && n < maxShow; ++i) {
-        // Exemplo:
-        // const char* name = ranking->items[i].name;
-        // int score = ranking->items[i].score;
+    for (int i = 0; i < ranking->count && n < maxShow; ++i) {
+        const char* name = ranking->items[i].name;
+        int score = ranking->items[i].score;
 
-        // Placeholders (remova após ajustar):
-        const char* name = "Player";
-        int score = 0;
-
-        DrawText(TextFormat("%2d) %-16s  %6d", i+1, name, score), x, y, 24, WHITE);
+        DrawText(TextFormat("%2d) %-16s  %6d", i + 1, name, score), x, y, 24, WHITE);
         y += lh;
         n++;
     }
