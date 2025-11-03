@@ -4,6 +4,8 @@ caiocaio;18
 caio;8
 testesteste;8
 teste;7
+caiao;6
+pedro;5
 pedro1;5
 teste1;2
 caio;1

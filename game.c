@@ -398,42 +398,6 @@ static void check_collision(GameState *state)
      // Libera o “respiro” para os próximos frames
      state->just_scrolled = 0;
  }
- 
-/* -------------------------------------------------------
-   RENDER SIMPLES (ASCII)
- ------------------------------------------------------- */
-void game_render(const GameState *state)
-{
-    utils_clear_screen();
-
-    for (int i = 0; i < MAP_WIDTH + 2; ++i) putchar('#');
-    putchar('\n');
-
-    for (int y = 0; y < MAP_HEIGHT; ++y) {
-        putchar('#');
-        for (int x = 0; x < MAP_WIDTH; ++x) {
-            if (state->player_x == x && state->player_y == y) {
-                putchar(CHAR_PLAYER);
-            } else {
-                const Row *row = &state->rows[y];
-                if (row->type == ROW_GRASS || !row->queue) {
-                    putchar(CHAR_GRASS);
-                } else {
-                    char cell = queue_get_cell(row->queue, x);
-                    putchar(cell);
-                }
-            }
-        }
-        putchar('#');
-        putchar('\n');
-    }
-
-    for (int i = 0; i < MAP_WIDTH + 2; ++i) putchar('#');
-    putchar('\n');
-
-    printf("Score: %d  World: %d  Controls: W/A/S/D (Q sai)\n",
-           state->score, state->world_position);
-}
 
 /* -------------------------------------------------------
    INPUT / CONTROLES
