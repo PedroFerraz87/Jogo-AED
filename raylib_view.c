@@ -309,8 +309,7 @@ void raylib_run_game(Ranking *ranking) {
 
                 // Game over?
                 if (state.game_over) {
-                    ranking_add_and_sort(ranking, player_name, state.score);
-                    ranking_save(ranking, RANKING_FILE);
+                    ranking_add(ranking, player_name, state.score, RANKING_FILE);
                     current_screen = GAME_OVER_SCREEN;
                 }
 
