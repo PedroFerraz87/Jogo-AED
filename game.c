@@ -521,7 +521,4 @@ void game_render(const GameState *state)
         state->advanced_this_tick = 0;           // Não houve avanço válido.
     }
 }
-
- 
- 
- 
+//////

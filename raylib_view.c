@@ -4,6 +4,11 @@
 #include "utils.h"
 #include <string.h>
 
+// ---- FORWARD DECLARATIONS (prototipos) ----
+static void render_menu_screen(int menu_index, const char** options, int count);
+static void render_help_screen(void);
+static void render_ranking_screen(const Ranking *ranking);
+
 #define SCREEN_WIDTH 800
 #define SCREEN_HEIGHT 600
 #define CELL_SIZE 25
@@ -21,11 +26,12 @@
 
 // Estados do jogo
 typedef enum {
-    GAME_START_SCREEN,
+    GAME_START_SCREEN,   // usamos como "MENU"
     GAME_PLAYING,
-    GAME_OVER_SCREEN
+    GAME_OVER_SCREEN,
+    GAME_HELP_SCREEN,    // NOVO: "Aprender a jogar"
+    GAME_RANKING_SCREEN  // NOVO: "Ver ranking"
 } GameScreen;
-
 // Funções para desenhar elementos no estilo voxel
 static void draw_player_voxel(int x, int y) {
     // Corpo principal (bloco maior)
@@ -166,19 +172,25 @@ static void render_game(const GameState *state) {
     DrawText("Q to quit", MARGIN, SCREEN_HEIGHT - 40, 16, WHITE);
 }
 
-// Renderiza tela de início
-static void render_start_screen() {
+// Renderiza o menu principal com as opções e destaque na selecionada
+static void render_menu_screen(int menu_index, const char** options, int count)
+{
     ClearBackground(BLACK);
-    
-    // Título
-    DrawText("Nova(Velha) InfanCIA", SCREEN_WIDTH/2 - 200, SCREEN_HEIGHT/2 - 100, 40, YELLOW);
-    DrawText("Crossy Road", SCREEN_WIDTH/2 - 100, SCREEN_HEIGHT/2 - 50, 30, WHITE);
-    
-    // Instruções
-    DrawText("Use WASD ou as setas para mover", SCREEN_WIDTH/2 - 150, SCREEN_HEIGHT/2, 20, WHITE);
-    DrawText("Chegue ao topo para fazer o mundo rolar!", SCREEN_WIDTH/2 - 200, SCREEN_HEIGHT/2 + 30, 20, GREEN);
-    DrawText("Pressione ESPAÇO para iniciar", SCREEN_WIDTH/2 - 100, SCREEN_HEIGHT/2 + 80, 24, YELLOW);
-    DrawText("Pressione Q para sair", SCREEN_WIDTH/2 - 80, SCREEN_HEIGHT/2 + 110, 20, GRAY);
+
+    DrawText("Nova(Velha) InfanCIA", SCREEN_WIDTH/2 - 220, 120, 40, YELLOW);
+    DrawText("Crossy Road",           SCREEN_WIDTH/2 - 100, 170, 30, WHITE);
+    DrawText("Use UP/DOWN para navegar, ENTER para selecionar",
+             SCREEN_WIDTH/2 - 280, 220, 18, GRAY);
+
+    int base_y = 270;
+    for (int i = 0; i < count; ++i) {
+        Color c = (i == menu_index) ? YELLOW : WHITE; // se selecionado, pinta de amarelo
+        if (i == menu_index)
+            DrawText(">", SCREEN_WIDTH/2 - 140, base_y + i*40, 26, c); // seta indicadora
+        DrawText(options[i],  SCREEN_WIDTH/2 - 110, base_y + i*40, 26, c);
+    }
+
+    DrawText("Q para sair", SCREEN_WIDTH/2 - 60, SCREEN_HEIGHT - 60, 20, GRAY);
 }
 
 // Renderiza tela de game over
@@ -205,73 +217,115 @@ static void render_game_over_screen(const GameState *state, const char *player_n
 void raylib_run_game() {
     InitWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "Nova(Velha) Infancia - Crossy Road");
     SetTargetFPS(60);
-    
+
     GameState state;
-    GameScreen current_screen = GAME_START_SCREEN;
+    GameScreen current_screen = GAME_START_SCREEN; // tela de MENU
     char player_name[50] = "Player";
-    
-    // Inicializa ranking
+
+    // Ranking
     Ranking ranking;
     ranking_load(&ranking, "ranking.txt");
-    
+
+    // Estado do menu
+    int menu_index = 0; // 0..3
+    const char* MENU_OPTS[] = {
+        "Aprender a jogar",
+        "Jogar",
+        "Ver ranking",
+        "Voltar"
+    };
+    const int MENU_COUNT = 4;
+
+    int exit_requested = 0;
+
     while (!WindowShouldClose()) {
-        // Input handling
+        // Atalho global para sair
         if (IsKeyPressed(KEY_Q)) {
-            break;
+            exit_requested = 1;
         }
-        
+
+        // --- INPUT / LÓGICA POR TELA ---
         switch (current_screen) {
-            case GAME_START_SCREEN:
-                if (IsKeyPressed(KEY_SPACE)) {
-                    game_init(&state, MAP_WIDTH);
-                    current_screen = GAME_PLAYING;
+            case GAME_START_SCREEN: { // MENU
+                if (IsKeyPressed(KEY_DOWN)) {
+                    menu_index = (menu_index + 1) % MENU_COUNT;
                 }
-                break;
-                
-            case GAME_PLAYING:
+                if (IsKeyPressed(KEY_UP)) {
+                    menu_index = (menu_index - 1 + MENU_COUNT) % MENU_COUNT;
+                }
+                if (IsKeyPressed(KEY_ENTER) || IsKeyPressed(KEY_SPACE)) {
+                    if (menu_index == 0) {           // Aprender a jogar
+                        current_screen = GAME_HELP_SCREEN;
+                    } else if (menu_index == 1) {    // Jogar
+                        game_init(&state, MAP_WIDTH);
+                        current_screen = GAME_PLAYING;
+                    } else if (menu_index == 2) {    // Ver ranking
+                        current_screen = GAME_RANKING_SCREEN;
+                    } else if (menu_index == 3) {    // Voltar (sair)
+                        exit_requested = 1;
+                    }
+                }
+            } break;
+
+            case GAME_PLAYING: {
                 // Input do jogador
-                if (IsKeyPressed(KEY_W) || IsKeyPressed(KEY_UP)) {
-                    game_handle_input(&state, 'W');
-                }
-                if (IsKeyPressed(KEY_S) || IsKeyPressed(KEY_DOWN)) {
-                    game_handle_input(&state, 'S');
-                }
-                if (IsKeyPressed(KEY_A) || IsKeyPressed(KEY_LEFT)) {
-                    game_handle_input(&state, 'A');
-                }
-                if (IsKeyPressed(KEY_D) || IsKeyPressed(KEY_RIGHT)) {
-                    game_handle_input(&state, 'D');
-                }
-                
+                if (IsKeyPressed(KEY_W) || IsKeyPressed(KEY_UP))    game_handle_input(&state, 'W');
+                if (IsKeyPressed(KEY_S) || IsKeyPressed(KEY_DOWN))  game_handle_input(&state, 'S');
+                if (IsKeyPressed(KEY_A) || IsKeyPressed(KEY_LEFT))  game_handle_input(&state, 'A');
+                if (IsKeyPressed(KEY_D) || IsKeyPressed(KEY_RIGHT)) game_handle_input(&state, 'D');
+
                 // Atualiza jogo
                 game_update(&state);
-                
-                // Verifica game over
+
+                // Game over?
                 if (state.game_over) {
-                    // Salva score
                     ranking_add_and_sort(&ranking, player_name, state.score);
                     ranking_save(&ranking, "ranking.txt");
                     current_screen = GAME_OVER_SCREEN;
                 }
-                break;
-                
-            case GAME_OVER_SCREEN:
+
+                // ESC durante o jogo: volta ao MENU
+                if (IsKeyPressed(KEY_ESCAPE)) {
+                    current_screen = GAME_START_SCREEN;
+                }
+            } break;
+
+            case GAME_OVER_SCREEN: {
+                // R: jogar novamente
                 if (IsKeyPressed(KEY_R)) {
                     game_init(&state, MAP_WIDTH);
                     current_screen = GAME_PLAYING;
                 }
-                if (IsKeyPressed(KEY_M)) {
+                // M ou ESC: volta ao MENU
+                if (IsKeyPressed(KEY_M) || IsKeyPressed(KEY_ESCAPE)) {
                     current_screen = GAME_START_SCREEN;
                 }
-                break;
+            } break;
+
+            case GAME_HELP_SCREEN: {
+                // Apenas instruções; ESC volta ao MENU
+                if (IsKeyPressed(KEY_ESCAPE)) {
+                    current_screen = GAME_START_SCREEN;
+                }
+            } break;
+
+            case GAME_RANKING_SCREEN: {
+                // Apenas visualização do ranking; ESC volta ao MENU
+                if (IsKeyPressed(KEY_ESCAPE)) {
+                    current_screen = GAME_START_SCREEN;
+                }
+            } break;
         }
-        
-        // Renderização
+
+        if (exit_requested) break;
+
+        // --- RENDER ---
         BeginDrawing();
-        
+        ClearBackground(BLACK);
+
         switch (current_screen) {
             case GAME_START_SCREEN:
-                render_start_screen();
+                render_menu_screen(menu_index, MENU_OPTS, MENU_COUNT);
                 break;
             case GAME_PLAYING:
                 render_game(&state);
@@ -279,10 +333,70 @@ void raylib_run_game() {
             case GAME_OVER_SCREEN:
                 render_game_over_screen(&state, player_name);
                 break;
+            case GAME_HELP_SCREEN:
+                render_help_screen();
+                break;
+            case GAME_RANKING_SCREEN:
+                render_ranking_screen(&ranking);
+                break;
         }
-        
+
+        // opcional
+        DrawFPS(SCREEN_WIDTH - 90, 10);
+
         EndDrawing();
     }
-    
+
     CloseWindow();
+}
+
+
+static void render_help_screen(void)
+{
+    ClearBackground(BLACK);
+    DrawText("Como jogar", SCREEN_WIDTH/2 - 100, 80, 32, YELLOW);
+
+    int x = 120, y = 150, lh = 28;
+    DrawText("- W / S / A / D ou Setas: mover o personagem", x, y, 22, WHITE); y += lh;
+    DrawText("- Evite carros na estrada", x, y, 22, WHITE); y += lh;
+    DrawText("- No rio, fique em cima dos troncos", x, y, 22, WHITE); y += lh;
+    DrawText("- O mapa sobe automaticamente a cada intervalo", x, y, 22, WHITE); y += lh;
+    DrawText("- Pontue ao alcançar linhas ainda não visitadas", x, y, 22, WHITE); y += lh + 10;
+
+    DrawText("ESC para voltar ao menu", x, y, 22, GRAY);
+}
+
+static void render_ranking_screen(const Ranking *ranking)
+{
+    ClearBackground(BLACK);
+    DrawText("Ranking", SCREEN_WIDTH/2 - 70, 80, 32, YELLOW);
+    DrawText("ESC para voltar ao menu", SCREEN_WIDTH/2 - 120, 120, 20, GRAY);
+
+    int x = SCREEN_WIDTH/2 - 220;
+    int y = 170;
+    int lh = 28;
+
+    // ===== ajuste aqui conforme sua estrutura =====
+    // Exemplo suposto: ranking.count e ranking.items[i].name / .score
+    // Mostra top 10
+    int maxShow = 10;
+    int n = 0;
+    // Se o seu tipo não tiver esses campos, troque aqui.
+    for (int i = 0; i < /*ranking->count*/ 0 /*<-- troque para ranking->count*/ && n < maxShow; ++i) {
+        // Exemplo:
+        // const char* name = ranking->items[i].name;
+        // int score = ranking->items[i].score;
+
+        // Placeholders (remova após ajustar):
+        const char* name = "Player";
+        int score = 0;
+
+        DrawText(TextFormat("%2d) %-16s  %6d", i+1, name, score), x, y, 24, WHITE);
+        y += lh;
+        n++;
+    }
+
+    if (n == 0) {
+        DrawText("Nenhum registro encontrado ainda.", x, y, 22, GRAY);
+    }
 }
