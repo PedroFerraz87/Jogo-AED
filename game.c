@@ -25,7 +25,6 @@ static void row_destroy(Row *row);
 static void ensure_safe_area(GameState *state);
 static void scroll_world_down(GameState *state);
 static void move_rows(GameState *state);
-static void apply_river_push(GameState *state);
 static void check_collision(GameState *state);
 
 /* -------------------------------------------------------
@@ -300,33 +299,6 @@ static void move_rows(GameState *state)
         } else {
             row->moved_this_tick = 0;  // <<-- não moveu
         }
-    }
-}
-
-/* -------------------------------------------------------
-   EMPURRÃO DO RIO: carrega junto SÓ quando a linha moveu
-   (e nunca por causa do scroll)
- ------------------------------------------------------- */
-static void apply_river_push(GameState *state)
-{
-    if (!state || state->game_over) return;
-    if (state->just_scrolled) return;
-    if (state->player_y < 0 || state->player_y >= MAP_HEIGHT) return;
-
-    Row *row = &state->rows[state->player_y];
-    if (row->type != ROW_RIVER || !row->queue) return;
-
-    char under = queue_get_cell(row->queue, state->player_x);
-    if (under != CHAR_LOG) return; // na água: morte será verificada em seguida
-
-    // Só empurra se a linha REALMENTE moveu neste frame
-    if (row->moved_this_tick) {
-        if (row->direction < 0) state->player_x--;
-        else                    state->player_x++;
-
-        // wrap horizontal
-        if (state->player_x < 0)               state->player_x = MAP_WIDTH - 1;
-        else if (state->player_x >= MAP_WIDTH) state->player_x = 0;
     }
 }
 

@@ -1,4 +1,5 @@
-#include "raylib.h" 
+#include "raylib_view.h"
+#include <raylib.h>
 #include "game.h"
 #include "ranking.h"
 #include "utils.h"
@@ -13,6 +14,7 @@ static void render_ranking_screen(const Ranking *ranking);
 #define SCREEN_HEIGHT 600
 #define CELL_SIZE 25
 #define MARGIN 50
+#define RANKING_FILE "ranking.txt"
 
 // Cores no estilo voxel/Crossy Road
 #define COLOR_GRASS (Color){76, 175, 80, 255}      // Verde grama vibrante
@@ -64,16 +66,6 @@ static void draw_log_voxel(int x, int y) {
     DrawRectangle(x + 4, y + 10, CELL_SIZE - 8, 2, (Color){101, 67, 33, 255});
     DrawRectangle(x + 4, y + 14, CELL_SIZE - 8, 2, (Color){101, 67, 33, 255});
     DrawRectangle(x + 4, y + 18, CELL_SIZE - 8, 2, (Color){101, 67, 33, 255});
-}
-
-static void draw_tree_voxel(int x, int y) {
-    // Tronco da árvore
-    DrawRectangle(x + 8, y + 12, CELL_SIZE - 16, CELL_SIZE - 8, COLOR_TREE_TRUNK);
-    // Copa da árvore (bloco maior)
-    DrawRectangle(x + 2, y + 2, CELL_SIZE - 4, CELL_SIZE - 8, COLOR_TREE);
-    // Detalhes da copa
-    DrawRectangle(x + 4, y + 4, CELL_SIZE - 8, 4, (Color){56, 142, 60, 255});
-    DrawRectangle(x + 4, y + 12, CELL_SIZE - 8, 4, (Color){56, 142, 60, 255});
 }
 
 // Renderiza uma linha do jogo
@@ -193,18 +185,67 @@ static void render_game_over_screen(const GameState *state, const char *player_n
     DrawText("Press M to return to menu", SCREEN_WIDTH/2 - 120, SCREEN_HEIGHT/2 + 80, 20, WHITE);
 }
 
+void raylib_get_player_name(char *buffer, int max_len)
+{
+    InitWindow(600, 300, "Digite seu nome");
+    SetTargetFPS(60);
+
+    int letterCount = 0;
+    buffer[0] = '\0';
+
+    while (!WindowShouldClose())
+    {
+        int key = GetCharPressed();
+
+        while (key > 0)
+        {
+            if ((key >= 32) && (key <= 125) && (letterCount < max_len - 1))
+            {
+                buffer[letterCount] = (char)key;
+                letterCount++;
+                buffer[letterCount] = '\0';
+            }
+            key = GetCharPressed();
+        }
+
+        if (IsKeyPressed(KEY_BACKSPACE))
+        {
+            letterCount--;
+            if (letterCount < 0) letterCount = 0;
+            buffer[letterCount] = '\0';
+        }
+
+        BeginDrawing();
+        ClearBackground(RAYWHITE);
+
+        DrawText("Digite seu nome:", 180, 80, 25, DARKGRAY);
+        DrawRectangle(150, 130, 300, 40, LIGHTGRAY);
+        DrawText(buffer, 160, 140, 25, BLACK);
+
+        DrawText("Pressione ENTER para iniciar", 150, 200, 20, GRAY);
+
+        EndDrawing();
+
+        if (IsKeyPressed(KEY_ENTER) && letterCount > 0)
+            break;
+    }
+
+    CloseWindow();
+}
+
 // Função principal do jogo Raylib
-void raylib_run_game() {
+void raylib_run_game(Ranking *ranking) {
+    char player_name[MAX_NAME_LEN] = {0};
+    raylib_get_player_name(player_name, MAX_NAME_LEN);
+
     InitWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "Nova (Velha) Infancia - Crossy Road");
     SetTargetFPS(60);
 
     GameState state;
     GameScreen current_screen = GAME_START_SCREEN; // tela de MENU
-    char player_name[50] = "Player";
 
     // Ranking
-    Ranking ranking;
-    ranking_load(&ranking, "ranking.txt");
+    ranking_load(ranking, RANKING_FILE);
 
     // Estado do menu
     int menu_index = 0; // 0..3
@@ -254,8 +295,8 @@ void raylib_run_game() {
 
                 // Game over?
                 if (state.game_over) {
-                    ranking_add_and_sort(&ranking, player_name, state.score);
-                    ranking_save(&ranking, "ranking.txt");
+                    ranking_add_and_sort(ranking, player_name, state.score);
+                    ranking_save(ranking, RANKING_FILE);
                     current_screen = GAME_OVER_SCREEN;
                 }
 
@@ -312,19 +353,13 @@ void raylib_run_game() {
                 render_help_screen();
                 break;
             case GAME_RANKING_SCREEN:
-                render_ranking_screen(&ranking);
+                render_ranking_screen(ranking);
                 break;
         }
-
-        // opcional
-        DrawFPS(SCREEN_WIDTH - 90, 10);
-
         EndDrawing();
     }
-
     CloseWindow();
 }
-
 
 static void render_help_screen(void)
 {
@@ -351,12 +386,11 @@ static void render_ranking_screen(const Ranking *ranking)
     int y = 170;
     int lh = 28;
 
-    // ===== ajuste aqui conforme sua estrutura =====
     // Exemplo suposto: ranking.count e ranking.items[i].name / .score
     // Mostra top 10
     int maxShow = 10;
     int n = 0;
-    // Se o seu tipo não tiver esses campos, troque aqui.
+
     for (int i = 0; i < /*ranking->count*/ 0 /*<-- troque para ranking->count*/ && n < maxShow; ++i) {
         // Exemplo:
         // const char* name = ranking->items[i].name;

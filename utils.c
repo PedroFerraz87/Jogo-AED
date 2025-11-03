@@ -92,8 +92,3 @@ int utils_random_int(int min_value, int max_value) {
     int span = max_value - min_value + 1;
     return min_value + (rand() % span);
 }
-
-
-
-
-
