@@ -5,10 +5,18 @@
 
 // Circular queue used to represent one scrolling row of the map.
 // The queue stores ASCII cells and supports rotation to simulate movement.
+// Implementada como lista encadeada circular com nós.
 
+// Nó da lista encadeada circular
+typedef struct Node {
+    char data;              // caractere armazenado
+    struct Node *next;      // ponteiro para próximo nó
+} Node;
+
+// Fila circular implementada com lista encadeada
 typedef struct CircularQueue {
     int length;       // number of cells (columns)
-    char *cells;      // contiguous buffer of size length
+    Node *head;       // ponteiro para o primeiro nó (lista circular)
 } CircularQueue;
 
 // Creates a queue with given length, initializes all cells to ' '.
