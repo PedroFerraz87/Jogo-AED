@@ -113,17 +113,6 @@ static void render_row(const Row *row, int y, int player_x, int player_y) {
         }
     }
     
-    // Desenha árvores na grama (aleatoriamente)
-   // if (row->type == ROW_GRASS) {
-    //    for (int x = 0; x < MAP_WIDTH; x += 4) {
-      //      if (utils_random_int(0, 3) == 0) { // 25% chance de árvore
-      //          int tree_x = start_x + x * CELL_SIZE;
-      //          draw_tree_voxel(tree_x, start_y);
-      //      }
-      //  }
-      //}
-    
-    // Desenha jogador se estiver nesta linha
     if (player_y == y) {
         int player_x_pos = start_x + player_x * CELL_SIZE;
         draw_player_voxel(player_x_pos, start_y);
@@ -164,12 +153,6 @@ static void render_game(const GameState *state) {
             }
         }
     }
-    
-    
-    
-    // Controles
-    DrawText("WASD or Arrow Keys to move", MARGIN, SCREEN_HEIGHT - 60, 16, WHITE);
-    DrawText("Q to quit", MARGIN, SCREEN_HEIGHT - 40, 16, WHITE);
 }
 
 // Renderiza o menu principal com as opções e destaque na selecionada
@@ -177,7 +160,7 @@ static void render_menu_screen(int menu_index, const char** options, int count)
 {
     ClearBackground(BLACK);
 
-    DrawText("Nova(Velha) InfanCIA", SCREEN_WIDTH/2 - 220, 120, 40, YELLOW);
+    DrawText("Nova(Velha) InfancIA", SCREEN_WIDTH/2 - 220, 120, 40, YELLOW);
     DrawText("Crossy Road",           SCREEN_WIDTH/2 - 100, 170, 30, WHITE);
     DrawText("Use UP/DOWN para navegar, ENTER para selecionar",
              SCREEN_WIDTH/2 - 280, 220, 18, GRAY);
@@ -189,8 +172,6 @@ static void render_menu_screen(int menu_index, const char** options, int count)
             DrawText(">", SCREEN_WIDTH/2 - 140, base_y + i*40, 26, c); // seta indicadora
         DrawText(options[i],  SCREEN_WIDTH/2 - 110, base_y + i*40, 26, c);
     }
-
-    DrawText("Q para sair", SCREEN_WIDTH/2 - 60, SCREEN_HEIGHT - 60, 20, GRAY);
 }
 
 // Renderiza tela de game over
@@ -215,7 +196,7 @@ static void render_game_over_screen(const GameState *state, const char *player_n
 
 // Função principal do jogo Raylib
 void raylib_run_game() {
-    InitWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "Nova(Velha) Infancia - Crossy Road");
+    InitWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "Nova (Velha) Infancia - Crossy Road");
     SetTargetFPS(60);
 
     GameState state;
@@ -239,7 +220,11 @@ void raylib_run_game() {
     int exit_requested = 0;
 
     while (!WindowShouldClose()) {
+<<<<<<< HEAD
         // Atalho global para sair
+=======
+
+>>>>>>> a57ba2a60f3af1e34916009dbb5c97724496d863
         // --- INPUT / LÓGICA POR TELA ---
         switch (current_screen) {
             case GAME_START_SCREEN: { // MENU
