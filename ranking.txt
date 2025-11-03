@@ -1,3 +1,4 @@
+pedro;64
 RANK;30
 caioteste;29
 testelista;24
