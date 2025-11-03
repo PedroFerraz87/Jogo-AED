@@ -191,7 +191,6 @@ static void render_game_over_screen(const GameState *state, const char *player_n
     // Opções
     DrawText("Press R to play again", SCREEN_WIDTH/2 - 100, SCREEN_HEIGHT/2 + 50, 20, WHITE);
     DrawText("Press M to return to menu", SCREEN_WIDTH/2 - 120, SCREEN_HEIGHT/2 + 80, 20, WHITE);
-    DrawText("Press Q to quit", SCREEN_WIDTH/2 - 80, SCREEN_HEIGHT/2 + 110, 20, GRAY);
 }
 
 // Função principal do jogo Raylib
@@ -220,11 +219,6 @@ void raylib_run_game() {
     int exit_requested = 0;
 
     while (!WindowShouldClose()) {
-<<<<<<< HEAD
-        // Atalho global para sair
-=======
-
->>>>>>> a57ba2a60f3af1e34916009dbb5c97724496d863
         // --- INPUT / LÓGICA POR TELA ---
         switch (current_screen) {
             case GAME_START_SCREEN: { // MENU
