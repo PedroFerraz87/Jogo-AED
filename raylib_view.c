@@ -25,11 +25,16 @@ static void render_ranking_screen(const Ranking *ranking);
 #define COLOR_PLAYER (Color){255, 193, 7, 255}
 #define COLOR_TREE (Color){76, 175, 80, 255}
 #define COLOR_TREE_TRUNK (Color){121, 85, 72, 255}
+// === 2 PLAYER MODE ===
+// Cores dos jogadores para diferenciá-los visualmente
+#define COLOR_PLAYER1 (Color){255, 193, 7, 255}    // Amarelo - Jogador 1 (P1)
+#define COLOR_PLAYER2 (Color){0, 200, 255, 255}    // Ciano - Jogador 2 (P2)
 
 // Estados do jogo
 typedef enum {
     GAME_START_SCREEN,
     GAME_NAME_INPUT_SCREEN,
+    GAME_NAME_INPUT_SCREEN_P2,  // === 2 PLAYER MODE === Tela para input do nome do Jogador 2
     GAME_PLAYING,
     GAME_OVER_SCREEN,
     GAME_HELP_SCREEN,
@@ -37,12 +42,31 @@ typedef enum {
 } GameScreen;
 
 // ----- Desenho voxel -----
-static void draw_player_voxel(int x, int y) {
-    DrawRectangle(x + 2, y + 8, CELL_SIZE - 4, CELL_SIZE - 8, COLOR_PLAYER);
-    DrawRectangle(x + 4, y + 2, CELL_SIZE - 8, CELL_SIZE - 12, COLOR_PLAYER);
+/**
+ * Desenha um jogador no estilo voxel com cor customizável
+ * === 2 PLAYER MODE === Versão atualizada para suportar cores diferentes
+ * @param x Posição X em pixels
+ * @param y Posição Y em pixels
+ * @param player_color Cor do jogador (amarelo para P1, ciano para P2)
+ */
+static void draw_player_voxel(int x, int y, Color player_color) {
+    // Corpo principal (bloco maior)
+    DrawRectangle(x + 2, y + 8, CELL_SIZE - 4, CELL_SIZE - 8, player_color);
+    // Cabeça (bloco menor no topo)
+    DrawRectangle(x + 4, y + 2, CELL_SIZE - 8, CELL_SIZE - 12, player_color);
+    // Olhos (dois pequenos quadrados pretos)
     DrawRectangle(x + 6, y + 4, 3, 3, BLACK);
     DrawRectangle(x + 15, y + 4, 3, 3, BLACK);
+    // Crista (pequeno retângulo vermelho no topo)
     DrawRectangle(x + 8, y, CELL_SIZE - 16, 4, RED);
+}
+
+/**
+ * Função de compatibilidade: mantém função original usando cor padrão
+ * Usada no modo 1 jogador para manter compatibilidade
+ */
+static void draw_player_voxel_old(int x, int y) {
+    draw_player_voxel(x, y, COLOR_PLAYER);
 }
 
 static void draw_car_voxel(int x, int y, Color color) {
@@ -92,7 +116,7 @@ static void render_row(const Row *row, int y, int player_x, int player_y) {
 
     if (player_y == y) {
         int player_x_pos = start_x + player_x * CELL_SIZE;
-        draw_player_voxel(player_x_pos, start_y);
+        draw_player_voxel_old(player_x_pos, start_y);
     }
 }
 
@@ -122,6 +146,109 @@ static void render_game(const GameState *state) {
     }
 }
 
+// === 2 PLAYER MODE ===
+/**
+ * Renderiza uma linha do mapa no modo 2 jogadores
+ * Similar a render_row, mas desenha ambos os jogadores (P1 e P2) se estiverem nesta linha
+ * @param row Ponteiro para a linha do mapa a renderizar
+ * @param y Índice Y da linha (0 a MAP_HEIGHT-1)
+ * @param p1_x, p1_y Posição do Jogador 1
+ * @param p2_x, p2_y Posição do Jogador 2
+ * @param p1_alive Flag: 1 se P1 está vivo, 0 se morto
+ * @param p2_alive Flag: 1 se P2 está vivo, 0 se morto
+ */
+static void render_row_two(const Row *row, int y, int p1_x, int p1_y, int p2_x, int p2_y, int p1_alive, int p2_alive) {
+    int start_x = MARGIN;
+    int start_y = MARGIN + y * CELL_SIZE;
+
+    // Define cor de fundo baseada no tipo de linha
+    Color bg_color;
+    switch (row->type) {
+        case ROW_GRASS: bg_color = COLOR_GRASS; break;
+        case ROW_ROAD:  bg_color = COLOR_ROAD;  break;
+        case ROW_RIVER: bg_color = COLOR_RIVER; break;
+    }
+
+    // Desenha fundo da linha
+    DrawRectangle(start_x, start_y, MAP_WIDTH * CELL_SIZE, CELL_SIZE, bg_color);
+
+    // Desenha linhas da estrada (faixas brancas)
+    if (row->type == ROW_ROAD) {
+        for (int x = 0; x < MAP_WIDTH * CELL_SIZE; x += CELL_SIZE * 2) {
+            DrawRectangle(start_x + x, start_y + CELL_SIZE/2 - 1, CELL_SIZE, 2, WHITE);
+        }
+    }
+
+    // Desenha obstáculos (carros e troncos)
+    if (row->queue) {
+        for (int x = 0; x < MAP_WIDTH; ++x) {
+            char cell = queue_get_cell(row->queue, x);
+            int cell_x = start_x + x * CELL_SIZE;
+
+            if (cell == CHAR_CAR)      draw_car_voxel(cell_x, start_y, COLOR_CAR);
+            else if (cell == CHAR_LOG) draw_log_voxel(cell_x, start_y);
+        }
+    }
+
+    // Desenha P1 se estiver nesta linha e vivo (cor amarela)
+    if (p1_y == y && p1_alive) {
+        int p1_x_pos = start_x + p1_x * CELL_SIZE;
+        draw_player_voxel(p1_x_pos, start_y, COLOR_PLAYER1);
+    }
+    
+    // Desenha P2 se estiver nesta linha e vivo (cor ciano)
+    if (p2_y == y && p2_alive) {
+        int p2_x_pos = start_x + p2_x * CELL_SIZE;
+        draw_player_voxel(p2_x_pos, start_y, COLOR_PLAYER2);
+    }
+}
+
+/**
+ * Renderiza o jogo completo no modo 2 jogadores
+ * Mostra ambos os jogadores, suas pontuações individuais e status (vivo/morto)
+ * === 2 PLAYER MODE ===
+ */
+static void render_game_two(const GameState *state) {
+    ClearBackground(BLACK);
+
+    // Obtém posições e estados de ambos os jogadores
+    int p1_x, p1_y, p2_x, p2_y;
+    game_get_player_pos(state, 1, &p1_x, &p1_y);
+    game_get_player_pos(state, 2, &p2_x, &p2_y);
+    int p1_alive = game_is_player_alive(state, 1);
+    int p2_alive = game_is_player_alive(state, 2);
+    int p1_score = game_get_player_score(state, 1);
+    int p2_score = game_get_player_score(state, 2);
+
+    // Renderiza todas as linhas do mapa (incluindo ambos os jogadores)
+    for (int y = 0; y < MAP_HEIGHT; ++y) {
+        render_row_two(&state->rows[y], y, p1_x, p1_y, p2_x, p2_y, p1_alive, p2_alive);
+    }
+
+    // Desenha bordas do mapa
+    DrawRectangleLines(MARGIN, MARGIN, MAP_WIDTH * CELL_SIZE, MAP_HEIGHT * CELL_SIZE, WHITE);
+
+    // === HUD: Informações dos jogadores ===
+    // Pontuação do Jogador 1 (amarelo)
+    DrawText(TextFormat("P1 Score: %d", p1_score), MARGIN, 10, 20, COLOR_PLAYER1);
+    // Pontuação do Jogador 2 (ciano)
+    DrawText(TextFormat("P2 Score: %d", p2_score), MARGIN, 35, 20, COLOR_PLAYER2);
+    
+    // Status de vida do Jogador 1
+    if (p1_alive) {
+        DrawText("P1: VIVO", MARGIN, 60, 16, GREEN);
+    } else {
+        DrawText("P1: MORTO", MARGIN, 60, 16, RED);
+    }
+    
+    // Status de vida do Jogador 2
+    if (p2_alive) {
+        DrawText("P2: VIVO", MARGIN, 80, 16, GREEN);
+    } else {
+        DrawText("P2: MORTO", MARGIN, 80, 16, RED);
+    }
+}
+
 // ----- Telas -----
 static void render_menu_screen(int menu_index, const char** options, int count)
 {
@@ -140,27 +267,82 @@ static void render_menu_screen(int menu_index, const char** options, int count)
     }
 }
 
-static void render_game_over_screen(const GameState *state, const char *player_name) {
+/**
+ * Renderiza a tela de Game Over
+ * === 2 PLAYER MODE === Adaptada para mostrar resultados de ambos os jogadores
+ * @param state Estado do jogo
+ * @param player_name Nome do Jogador 1 (ou único jogador no modo 1P)
+ * @param player2_name Nome do Jogador 2 (NULL no modo 1P)
+ * @param two_players Flag: 1 = modo 2 jogadores, 0 = modo 1 jogador
+ */
+static void render_game_over_screen(const GameState *state, const char *player_name, const char *player2_name, int two_players) {
     ClearBackground(BLACK);
-    DrawText("GAME OVER!", SCREEN_WIDTH/2 - 100, SCREEN_HEIGHT/2 - 100, 40, RED);
-    DrawText(TextFormat("Final Score: %d", state->score), SCREEN_WIDTH/2 - 100, SCREEN_HEIGHT/2 - 50, 24, WHITE);
-    DrawText(TextFormat("Player: %s", player_name), SCREEN_WIDTH/2 - 80, SCREEN_HEIGHT/2 + 10, 20, GREEN);
+    DrawText("GAME OVER!", SCREEN_WIDTH/2 - 100, SCREEN_HEIGHT/2 - 150, 40, RED);
+    
+    if (two_players) {
+        // === 2 PLAYER MODE === Mostra resultados de ambos os jogadores
+        int p1_score = game_get_player_score(state, 1);
+        int p2_score = game_get_player_score(state, 2);
+        
+        // Mostra pontuação do Jogador 1 (amarelo)
+        DrawText(TextFormat("P1 (%s): %d", player_name ? player_name : "Player1", p1_score), 
+                 SCREEN_WIDTH/2 - 120, SCREEN_HEIGHT/2 - 90, 22, COLOR_PLAYER1);
+        // Mostra pontuação do Jogador 2 (ciano)
+        DrawText(TextFormat("P2 (%s): %d", player2_name ? player2_name : "Player2", p2_score), 
+                 SCREEN_WIDTH/2 - 120, SCREEN_HEIGHT/2 - 60, 22, COLOR_PLAYER2);
+        
+        // Verifica se houve empate ou vencedor
+        if (p1_score == p2_score) {
+            // Empate: ambos têm a mesma pontuação
+            DrawText(TextFormat("EMPATE! Ambos com %d pontos!", p1_score), 
+                     SCREEN_WIDTH/2 - 180, SCREEN_HEIGHT/2 - 20, 24, YELLOW);
+        } else {
+            // Determina vencedor (maior pontuação)
+            int winner_score = (p1_score > p2_score) ? p1_score : p2_score;
+            const char *winner_name = (p1_score > p2_score) ? player_name : player2_name;
+            // Mostra vencedor em destaque (amarelo)
+            DrawText(TextFormat("Vencedor: %s com %d pontos!", winner_name, winner_score), 
+                     SCREEN_WIDTH/2 - 180, SCREEN_HEIGHT/2 - 20, 24, YELLOW);
+        }
+    } else {
+        // Modo 1 jogador: mostra pontuação final normal
+        DrawText(TextFormat("Final Score: %d", state->score), SCREEN_WIDTH/2 - 100, SCREEN_HEIGHT/2 - 50, 24, WHITE);
+        DrawText(TextFormat("Player: %s", player_name), SCREEN_WIDTH/2 - 80, SCREEN_HEIGHT/2 + 10, 20, GREEN);
+    }
+    
+    // Instruções para o jogador
     DrawText("Press R to play again", SCREEN_WIDTH/2 - 100, SCREEN_HEIGHT/2 + 50, 20, WHITE);
     DrawText("Press M to return to menu", SCREEN_WIDTH/2 - 120, SCREEN_HEIGHT/2 + 80, 20, WHITE);
 }
 
-static void render_name_input_screen(const char *buffer, int letterCount) {
+/**
+ * Renderiza a tela de input de nome
+ * === 2 PLAYER MODE === Adaptada para aceitar título customizado (P1 ou P2)
+ * @param buffer Buffer com o texto digitado
+ * @param letterCount Número de letras digitadas
+ * @param title Título da tela (ex: "Digite o nome do Jogador 1:" ou "Digite o nome do Jogador 2:")
+ */
+static void render_name_input_screen(const char *buffer, int letterCount, const char *title) {
     ClearBackground((Color){30, 30, 30, 255});
-    DrawText("Digite seu nome:", SCREEN_WIDTH/2 - 150, SCREEN_HEIGHT/2 - 80, 30, WHITE);
+    
+    // Título da tela (customizável para P1 ou P2)
+    DrawText(title ? title : "Digite seu nome:", SCREEN_WIDTH/2 - 150, SCREEN_HEIGHT/2 - 80, 30, WHITE);
+    
+    // Caixa de texto (fundo escuro)
     DrawRectangle(SCREEN_WIDTH/2 - 200, SCREEN_HEIGHT/2 - 30, 400, 50, (Color){60, 60, 60, 255});
     DrawRectangleLines(SCREEN_WIDTH/2 - 200, SCREEN_HEIGHT/2 - 30, 400, 50, WHITE);
+    
+    // Texto digitado
     DrawText(buffer, SCREEN_WIDTH/2 - 190, SCREEN_HEIGHT/2 - 15, 24, WHITE);
 
+    // Cursor piscante (mostra posição de digitação)
     if (((int)(GetTime() * 2)) % 2 == 0) {
         int textWidth = MeasureText(buffer, 24);
         DrawText("_", SCREEN_WIDTH/2 - 190 + textWidth, SCREEN_HEIGHT/2 - 15, 24, WHITE);
     }
-    DrawText("Pressione ENTER para iniciar", SCREEN_WIDTH/2 - 180, SCREEN_HEIGHT/2 + 50, 20, GRAY);
+    
+    // Instruções
+    DrawText("Pressione ENTER para continuar", SCREEN_WIDTH/2 - 180, SCREEN_HEIGHT/2 + 50, 20, GRAY);
     if (letterCount == 0) {
         DrawText("(ou ESC para cancelar)", SCREEN_WIDTH/2 - 120, SCREEN_HEIGHT/2 + 80, 18, DARKGRAY);
     }
@@ -180,6 +362,8 @@ void raylib_run_game(Ranking *ranking) {
     GameState state;
     GameScreen current_screen = GAME_START_SCREEN;
     char player_name[MAX_NAME_LEN] = {0};
+    char player2_name[MAX_NAME_LEN] = {0};  // === 2 PLAYER MODE ===
+    int two_players_mode = 0;  // === 2 PLAYER MODE ===
 
     int name_input_letterCount = 0;
     char name_input_buffer[MAX_NAME_LEN] = {0};
@@ -187,8 +371,8 @@ void raylib_run_game(Ranking *ranking) {
     ranking_load(ranking, RANKING_FILE);
 
     int menu_index = 0;
-    const char* MENU_OPTS[] = { "Aprender a jogar", "Jogar", "Ver ranking", "Voltar" };
-    const int MENU_COUNT = 4;
+    const char* MENU_OPTS[] = { "Aprender a jogar", "Jogar (1 Jogador)", "Jogar (2 Jogadores)", "Ver ranking", "Voltar" };
+    const int MENU_COUNT = 5;
 
     int exit_requested = 0;
 
@@ -208,11 +392,17 @@ void raylib_run_game(Ranking *ranking) {
                 if (IsKeyPressed(KEY_UP))   menu_index = (menu_index - 1 + MENU_COUNT) % MENU_COUNT;
                 if (IsKeyPressed(KEY_ENTER) || IsKeyPressed(KEY_SPACE)) {
                     if (menu_index == 0)      current_screen = GAME_HELP_SCREEN;
-                    else if (menu_index == 1) { // Jogar -> pedir nome
+                    else if (menu_index == 1) { // Jogar (1 Jogador)
+                        two_players_mode = 0;
                         name_input_letterCount = 0; name_input_buffer[0] = '\0';
                         current_screen = GAME_NAME_INPUT_SCREEN;
-                    } else if (menu_index == 2) current_screen = GAME_RANKING_SCREEN;
-                    else if (menu_index == 3) exit_requested = 1;
+                    } else if (menu_index == 2) { // === 2 PLAYER MODE === Jogar (2 Jogadores)
+                        two_players_mode = 1;
+                        name_input_letterCount = 0; name_input_buffer[0] = '\0';
+                        player2_name[0] = '\0';
+                        current_screen = GAME_NAME_INPUT_SCREEN;
+                    } else if (menu_index == 3) current_screen = GAME_RANKING_SCREEN;
+                    else if (menu_index == 4) exit_requested = 1;
                 }
             } break;
 
@@ -232,22 +422,80 @@ void raylib_run_game(Ranking *ranking) {
                 if (IsKeyPressed(KEY_ENTER) && name_input_letterCount > 0) {
                     strncpy(player_name, name_input_buffer, MAX_NAME_LEN - 1);
                     player_name[MAX_NAME_LEN - 1] = '\0';
+                    if (two_players_mode) {
+                        // === 2 PLAYER MODE === Pede nome do P2
+                        name_input_letterCount = 0; name_input_buffer[0] = '\0';
+                        current_screen = GAME_NAME_INPUT_SCREEN_P2;
+                    } else {
+                        game_init(&state, MAP_WIDTH);
+                        game_set_two_players(&state, 0);
+                        current_screen = GAME_PLAYING;
+                    }
+                }
+                if (IsKeyPressed(KEY_ESCAPE)) current_screen = GAME_START_SCREEN;
+            } break;
+
+            // === 2 PLAYER MODE ===
+            case GAME_NAME_INPUT_SCREEN_P2: {
+                int key = GetCharPressed();
+                while (key > 0) {
+                    if ((key >= 32) && (key <= 125) && (name_input_letterCount < MAX_NAME_LEN - 1)) {
+                        name_input_buffer[name_input_letterCount++] = (char)key;
+                        name_input_buffer[name_input_letterCount] = '\0';
+                    }
+                    key = GetCharPressed();
+                }
+                if (IsKeyPressed(KEY_BACKSPACE)) {
+                    if (name_input_letterCount > 0) name_input_letterCount--;
+                    name_input_buffer[name_input_letterCount] = '\0';
+                }
+                if (IsKeyPressed(KEY_ENTER) && name_input_letterCount > 0) {
+                    strncpy(player2_name, name_input_buffer, MAX_NAME_LEN - 1);
+                    player2_name[MAX_NAME_LEN - 1] = '\0';
                     game_init(&state, MAP_WIDTH);
+                    game_set_two_players(&state, 1);
                     current_screen = GAME_PLAYING;
                 }
                 if (IsKeyPressed(KEY_ESCAPE)) current_screen = GAME_START_SCREEN;
             } break;
 
             case GAME_PLAYING: {
-                if (IsKeyPressed(KEY_W) || IsKeyPressed(KEY_UP))    game_handle_input(&state, 'W');
-                if (IsKeyPressed(KEY_S) || IsKeyPressed(KEY_DOWN))  game_handle_input(&state, 'S');
-                if (IsKeyPressed(KEY_A) || IsKeyPressed(KEY_LEFT))  game_handle_input(&state, 'A');
-                if (IsKeyPressed(KEY_D) || IsKeyPressed(KEY_RIGHT)) game_handle_input(&state, 'D');
+                if (two_players_mode) {
+                    // === 2 PLAYER MODE ===
+                    // P1: WASD
+                    if (IsKeyPressed(KEY_W)) game_handle_input_player(&state, 1, 'W');
+                    if (IsKeyPressed(KEY_S)) game_handle_input_player(&state, 1, 'S');
+                    if (IsKeyPressed(KEY_A)) game_handle_input_player(&state, 1, 'A');
+                    if (IsKeyPressed(KEY_D)) game_handle_input_player(&state, 1, 'D');
+                    
+                    // P2: Setas
+                    if (IsKeyPressed(KEY_UP))    game_handle_input_player(&state, 2, 'W');
+                    if (IsKeyPressed(KEY_DOWN))  game_handle_input_player(&state, 2, 'S');
+                    if (IsKeyPressed(KEY_LEFT))  game_handle_input_player(&state, 2, 'A');
+                    if (IsKeyPressed(KEY_RIGHT)) game_handle_input_player(&state, 2, 'D');
+                } else {
+                    // Modo 1 jogador
+                    if (IsKeyPressed(KEY_W) || IsKeyPressed(KEY_UP))    game_handle_input(&state, 'W');
+                    if (IsKeyPressed(KEY_S) || IsKeyPressed(KEY_DOWN))  game_handle_input(&state, 'S');
+                    if (IsKeyPressed(KEY_A) || IsKeyPressed(KEY_LEFT))  game_handle_input(&state, 'A');
+                    if (IsKeyPressed(KEY_D) || IsKeyPressed(KEY_RIGHT)) game_handle_input(&state, 'D');
+                }
 
                 game_update(&state);
 
                 if (state.game_over) {
-                    ranking_add(ranking, player_name, state.score, RANKING_FILE);
+                    if (two_players_mode) {
+                        // === 2 PLAYER MODE === Salva apenas o melhor score
+                        int p1_score = game_get_player_score(&state, 1);
+                        int p2_score = game_get_player_score(&state, 2);
+                        if (p1_score > p2_score) {
+                            ranking_add(ranking, player_name, p1_score, RANKING_FILE);
+                        } else {
+                            ranking_add(ranking, player2_name, p2_score, RANKING_FILE);
+                        }
+                    } else {
+                        ranking_add(ranking, player_name, state.score, RANKING_FILE);
+                    }
                     current_screen = GAME_OVER_SCREEN;
                 }
                 if (IsKeyPressed(KEY_M)) current_screen = GAME_START_SCREEN;
@@ -256,6 +504,9 @@ void raylib_run_game(Ranking *ranking) {
             case GAME_OVER_SCREEN: {
                 if (IsKeyPressed(KEY_R)) {
                     name_input_letterCount = 0; name_input_buffer[0] = '\0';
+                    if (two_players_mode) {
+                        player2_name[0] = '\0';
+                    }
                     current_screen = GAME_NAME_INPUT_SCREEN;
                 }
                 if (IsKeyPressed(KEY_M)) current_screen = GAME_START_SCREEN;
@@ -281,13 +532,21 @@ void raylib_run_game(Ranking *ranking) {
                     render_menu_screen(menu_index, MENU_OPTS, MENU_COUNT);
                     break;
                 case GAME_NAME_INPUT_SCREEN:
-                    render_name_input_screen(name_input_buffer, name_input_letterCount);
+                    render_name_input_screen(name_input_buffer, name_input_letterCount, 
+                                             two_players_mode ? "Digite o nome do Jogador 1:" : "Digite seu nome:");
+                    break;
+                case GAME_NAME_INPUT_SCREEN_P2:
+                    render_name_input_screen(name_input_buffer, name_input_letterCount, "Digite o nome do Jogador 2:");
                     break;
                 case GAME_PLAYING:
-                    render_game(&state);
+                    if (two_players_mode) {
+                        render_game_two(&state);
+                    } else {
+                        render_game(&state);
+                    }
                     break;
                 case GAME_OVER_SCREEN:
-                    render_game_over_screen(&state, player_name);
+                    render_game_over_screen(&state, player_name, player2_name, two_players_mode);
                     break;
                 case GAME_HELP_SCREEN:
                     render_help_screen();
@@ -334,7 +593,11 @@ static void render_help_screen(void)
     DrawText("Como jogar", SCREEN_WIDTH/2 - 100, 80, 32, YELLOW);
 
     int x = 120, y = 150, lh = 28;
-    DrawText("- W / S / A / D ou Setas: mover o personagem", x, y, 22, WHITE); y += lh;
+    DrawText("Modo 1 Jogador:", x, y, 22, YELLOW); y += lh;
+    DrawText("- W / S / A / D ou Setas: mover", x + 20, y, 22, WHITE); y += lh;
+    DrawText("Modo 2 Jogadores:", x, y, 22, YELLOW); y += lh;
+    DrawText("- Jogador 1 (Amarelo): W / A / S / D", x + 20, y, 22, COLOR_PLAYER1); y += lh;
+    DrawText("- Jogador 2 (Ciano): Setas", x + 20, y, 22, COLOR_PLAYER2); y += lh + 10;
     DrawText("- Evite carros na estrada", x, y, 22, WHITE); y += lh;
     DrawText("- No rio, fique em cima dos troncos", x, y, 22, WHITE); y += lh;
     DrawText("- O mapa sobe automaticamente a cada intervalo", x, y, 22, WHITE); y += lh;
@@ -387,3 +650,4 @@ static void render_ranking_screen(const Ranking *ranking)
         DrawText("Nenhum registro encontrado ainda.", SCREEN_WIDTH/2 - 180, y, 22, GRAY);
     }
 }
+
