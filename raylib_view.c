@@ -106,7 +106,6 @@ static void render_game(const GameState *state) {
     DrawRectangleLines(MARGIN, MARGIN, MAP_WIDTH * CELL_SIZE, MAP_HEIGHT * CELL_SIZE, WHITE);
 
     DrawText(TextFormat("Score: %d", state->score), MARGIN, 10, 20, WHITE);
-    DrawText(TextFormat("World: %d", state->world_position), MARGIN, 35, 16, YELLOW);
     DrawText(TextFormat("Pos: (%d,%d)", state->player_x, state->player_y), MARGIN, 55, 14, YELLOW);
 
     if (state->player_y >= 0 && state->player_y < MAP_HEIGHT) {
