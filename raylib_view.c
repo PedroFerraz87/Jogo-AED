@@ -17,138 +17,113 @@ static void render_ranking_screen(const Ranking *ranking);
 #define RANKING_FILE "ranking.txt"
 
 // Cores no estilo voxel/Crossy Road
-#define COLOR_GRASS (Color){76, 175, 80, 255}      // Verde grama vibrante
-#define COLOR_ROAD (Color){97, 97, 97, 255}        // Cinza estrada
-#define COLOR_RIVER (Color){33, 150, 243, 255}     // Azul água vibrante
-#define COLOR_CAR (Color){244, 67, 54, 255}        // Vermelho carro vibrante
-#define COLOR_LOG (Color){121, 85, 72, 255}        // Marrom tronco
-#define COLOR_PLAYER (Color){255, 193, 7, 255}     // Amarelo jogador
-#define COLOR_TREE (Color){76, 175, 80, 255}       // Verde árvore
-#define COLOR_TREE_TRUNK (Color){121, 85, 72, 255}  // Marrom tronco árvore
+#define COLOR_GRASS (Color){76, 175, 80, 255}
+#define COLOR_ROAD  (Color){97, 97, 97, 255}
+#define COLOR_RIVER (Color){33, 150, 243, 255}
+#define COLOR_CAR   (Color){244, 67, 54, 255}
+#define COLOR_LOG   (Color){121, 85, 72, 255}
+#define COLOR_PLAYER (Color){255, 193, 7, 255}
+#define COLOR_TREE (Color){76, 175, 80, 255}
+#define COLOR_TREE_TRUNK (Color){121, 85, 72, 255}
 
 // Estados do jogo
 typedef enum {
-    GAME_START_SCREEN,   // usamos como "MENU"
-    GAME_NAME_INPUT_SCREEN,  // NOVO: tela para digitar o nome
+    GAME_START_SCREEN,
+    GAME_NAME_INPUT_SCREEN,
     GAME_PLAYING,
     GAME_OVER_SCREEN,
-    GAME_HELP_SCREEN,    // NOVO: "Aprender a jogar"
-    GAME_RANKING_SCREEN  // NOVO: "Ver ranking"
+    GAME_HELP_SCREEN,
+    GAME_RANKING_SCREEN
 } GameScreen;
-// Funções para desenhar elementos no estilo voxel
+
+// ----- Desenho voxel -----
 static void draw_player_voxel(int x, int y) {
-    // Corpo principal (bloco maior)
     DrawRectangle(x + 2, y + 8, CELL_SIZE - 4, CELL_SIZE - 8, COLOR_PLAYER);
-    // Cabeça (bloco menor no topo)
     DrawRectangle(x + 4, y + 2, CELL_SIZE - 8, CELL_SIZE - 12, COLOR_PLAYER);
-    // Olhos
     DrawRectangle(x + 6, y + 4, 3, 3, BLACK);
     DrawRectangle(x + 15, y + 4, 3, 3, BLACK);
-    // Crista (pequeno retângulo vermelho)
     DrawRectangle(x + 8, y, CELL_SIZE - 16, 4, RED);
 }
 
 static void draw_car_voxel(int x, int y, Color color) {
-    // Base do carro
     DrawRectangle(x + 1, y + 12, CELL_SIZE - 2, CELL_SIZE - 8, color);
-    // Teto do carro
     DrawRectangle(x + 3, y + 6, CELL_SIZE - 6, CELL_SIZE - 12, WHITE);
-    // Faróis
     DrawRectangle(x + 2, y + 14, 4, 3, YELLOW);
     DrawRectangle(x + CELL_SIZE - 6, y + 14, 4, 3, YELLOW);
-    // Janelas
     DrawRectangle(x + 4, y + 8, CELL_SIZE - 8, 4, (Color){200, 200, 255, 255});
 }
 
 static void draw_log_voxel(int x, int y) {
-    // Tronco principal
     DrawRectangle(x + 2, y + 8, CELL_SIZE - 4, CELL_SIZE - 8, COLOR_LOG);
-    // Detalhes da madeira (linhas)
     DrawRectangle(x + 4, y + 10, CELL_SIZE - 8, 2, (Color){101, 67, 33, 255});
     DrawRectangle(x + 4, y + 14, CELL_SIZE - 8, 2, (Color){101, 67, 33, 255});
     DrawRectangle(x + 4, y + 18, CELL_SIZE - 8, 2, (Color){101, 67, 33, 255});
 }
 
-// Renderiza uma linha do jogo
+// ----- Render de linhas e jogo -----
 static void render_row(const Row *row, int y, int player_x, int player_y) {
     int start_x = MARGIN;
     int start_y = MARGIN + y * CELL_SIZE;
-    
-    // Cor de fundo da linha
+
     Color bg_color;
     switch (row->type) {
         case ROW_GRASS: bg_color = COLOR_GRASS; break;
-        case ROW_ROAD: bg_color = COLOR_ROAD; break;
+        case ROW_ROAD:  bg_color = COLOR_ROAD;  break;
         case ROW_RIVER: bg_color = COLOR_RIVER; break;
     }
-    
-    // Desenha fundo da linha
+
     DrawRectangle(start_x, start_y, MAP_WIDTH * CELL_SIZE, CELL_SIZE, bg_color);
-    
-    // Desenha linhas da estrada se for estrada
+
     if (row->type == ROW_ROAD) {
         for (int x = 0; x < MAP_WIDTH * CELL_SIZE; x += CELL_SIZE * 2) {
             DrawRectangle(start_x + x, start_y + CELL_SIZE/2 - 1, CELL_SIZE, 2, WHITE);
         }
     }
-    
-    // Desenha obstáculos se houver
+
     if (row->queue) {
         for (int x = 0; x < MAP_WIDTH; ++x) {
             char cell = queue_get_cell(row->queue, x);
             int cell_x = start_x + x * CELL_SIZE;
-            
-            if (cell == CHAR_CAR) {
-                draw_car_voxel(cell_x, start_y, COLOR_CAR);
-            } else if (cell == CHAR_LOG) {
-                draw_log_voxel(cell_x, start_y);
-            }
+
+            if (cell == CHAR_CAR)      draw_car_voxel(cell_x, start_y, COLOR_CAR);
+            else if (cell == CHAR_LOG) draw_log_voxel(cell_x, start_y);
         }
     }
-    
+
     if (player_y == y) {
         int player_x_pos = start_x + player_x * CELL_SIZE;
         draw_player_voxel(player_x_pos, start_y);
     }
 }
 
-// Renderiza o jogo principal
 static void render_game(const GameState *state) {
     ClearBackground(BLACK);
-    
-    // Desenha todas as linhas
+
     for (int y = 0; y < MAP_HEIGHT; ++y) {
         render_row(&state->rows[y], y, state->player_x, state->player_y);
     }
-    
-    // Bordas
+
     DrawRectangleLines(MARGIN, MARGIN, MAP_WIDTH * CELL_SIZE, MAP_HEIGHT * CELL_SIZE, WHITE);
-    
-    // Informações do jogo
+
     DrawText(TextFormat("Score: %d", state->score), MARGIN, 10, 20, WHITE);
     DrawText(TextFormat("World: %d", state->world_position), MARGIN, 35, 16, YELLOW);
     DrawText(TextFormat("Pos: (%d,%d)", state->player_x, state->player_y), MARGIN, 55, 14, YELLOW);
-    
-    // Debug: tipo da linha atual
+
     if (state->player_y >= 0 && state->player_y < MAP_HEIGHT) {
         const Row *row = &state->rows[state->player_y];
-        const char* row_type = (row->type == ROW_GRASS) ? "GRASS" : 
-                              (row->type == ROW_ROAD) ? "ROAD" : "RIVER";
+        const char* row_type = (row->type == ROW_GRASS) ? "GRASS" :
+                               (row->type == ROW_ROAD)  ? "ROAD"  : "RIVER";
         DrawText(TextFormat("Row Type: %s", row_type), MARGIN, 75, 14, GREEN);
-        
-        // Debug: se está em tronco
+
         if (row->type == ROW_RIVER && row->queue) {
             char cell = queue_get_cell(row->queue, state->player_x);
-            if (cell == CHAR_LOG) {
-                DrawText("ON LOG - SAFE!", MARGIN, 95, 16, GREEN);
-            } else {
-                DrawText("IN WATER - DANGER!", MARGIN, 95, 16, RED);
-            }
+            if (cell == CHAR_LOG) DrawText("ON LOG - SAFE!", MARGIN, 95, 16, GREEN);
+            else                  DrawText("IN WATER - DANGER!", MARGIN, 95, 16, RED);
         }
     }
 }
 
-// Renderiza o menu principal com as opções e destaque na selecionada
+// ----- Telas -----
 static void render_menu_screen(int menu_index, const char** options, int count)
 {
     ClearBackground(BLACK);
@@ -160,225 +135,200 @@ static void render_menu_screen(int menu_index, const char** options, int count)
 
     int base_y = 270;
     for (int i = 0; i < count; ++i) {
-        Color c = (i == menu_index) ? YELLOW : WHITE; // se selecionado, pinta de amarelo
-        if (i == menu_index)
-            DrawText(">", SCREEN_WIDTH/2 - 140, base_y + i*40, 26, c); // seta indicadora
+        Color c = (i == menu_index) ? YELLOW : WHITE;
+        if (i == menu_index) DrawText(">", SCREEN_WIDTH/2 - 140, base_y + i*40, 26, c);
         DrawText(options[i],  SCREEN_WIDTH/2 - 110, base_y + i*40, 26, c);
     }
 }
 
-// Renderiza tela de game over
 static void render_game_over_screen(const GameState *state, const char *player_name) {
     ClearBackground(BLACK);
-    
-    // Game Over
     DrawText("GAME OVER!", SCREEN_WIDTH/2 - 100, SCREEN_HEIGHT/2 - 100, 40, RED);
-    
-    // Score
     DrawText(TextFormat("Final Score: %d", state->score), SCREEN_WIDTH/2 - 100, SCREEN_HEIGHT/2 - 50, 24, WHITE);
-    // DrawText(TextFormat("World Reached: %d", state->world_position), SCREEN_WIDTH/2 - 120, SCREEN_HEIGHT/2 - 20, 20, YELLOW);
-    
-    // Player name
     DrawText(TextFormat("Player: %s", player_name), SCREEN_WIDTH/2 - 80, SCREEN_HEIGHT/2 + 10, 20, GREEN);
-    
-    // Opções
     DrawText("Press R to play again", SCREEN_WIDTH/2 - 100, SCREEN_HEIGHT/2 + 50, 20, WHITE);
     DrawText("Press M to return to menu", SCREEN_WIDTH/2 - 120, SCREEN_HEIGHT/2 + 80, 20, WHITE);
 }
 
-// Renderiza a tela de input do nome
 static void render_name_input_screen(const char *buffer, int letterCount) {
     ClearBackground((Color){30, 30, 30, 255});
-    
     DrawText("Digite seu nome:", SCREEN_WIDTH/2 - 150, SCREEN_HEIGHT/2 - 80, 30, WHITE);
-    
-    // Caixa de texto
     DrawRectangle(SCREEN_WIDTH/2 - 200, SCREEN_HEIGHT/2 - 30, 400, 50, (Color){60, 60, 60, 255});
     DrawRectangleLines(SCREEN_WIDTH/2 - 200, SCREEN_HEIGHT/2 - 30, 400, 50, WHITE);
-    
-    // Texto digitado
     DrawText(buffer, SCREEN_WIDTH/2 - 190, SCREEN_HEIGHT/2 - 15, 24, WHITE);
-    
-    // Cursor piscante
+
     if (((int)(GetTime() * 2)) % 2 == 0) {
         int textWidth = MeasureText(buffer, 24);
         DrawText("_", SCREEN_WIDTH/2 - 190 + textWidth, SCREEN_HEIGHT/2 - 15, 24, WHITE);
     }
-    
     DrawText("Pressione ENTER para iniciar", SCREEN_WIDTH/2 - 180, SCREEN_HEIGHT/2 + 50, 20, GRAY);
     if (letterCount == 0) {
         DrawText("(ou ESC para cancelar)", SCREEN_WIDTH/2 - 120, SCREEN_HEIGHT/2 + 80, 18, DARKGRAY);
     }
 }
 
-// Função principal do jogo Raylib
+// ----- Loop principal com RenderTexture (resolução virtual) -----
 void raylib_run_game(Ranking *ranking) {
-    InitWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "Nova (Velha) Infancia - Crossy Road");
+    SetConfigFlags(FLAG_VSYNC_HINT | FLAG_FULLSCREEN_MODE);
+    InitWindow(0, 0, "Nova (Velha) Infancia - Crossy Road");
     SetTargetFPS(60);
 
+    // Alvo de renderização virtual 800x600
+    const int VIRTUAL_W = SCREEN_WIDTH, VIRTUAL_H = SCREEN_HEIGHT;
+    RenderTexture2D target = LoadRenderTexture(VIRTUAL_W, VIRTUAL_H);
+    SetTextureFilter(target.texture, TEXTURE_FILTER_BILINEAR);
+
     GameState state;
-    GameScreen current_screen = GAME_START_SCREEN; // tela de MENU
+    GameScreen current_screen = GAME_START_SCREEN;
     char player_name[MAX_NAME_LEN] = {0};
-    
-    // Estado para input do nome
+
     int name_input_letterCount = 0;
     char name_input_buffer[MAX_NAME_LEN] = {0};
 
-    // Ranking
     ranking_load(ranking, RANKING_FILE);
 
-    // Estado do menu
-    int menu_index = 0; // 0..3
-    const char* MENU_OPTS[] = {
-        "Aprender a jogar",
-        "Jogar",
-        "Ver ranking",
-        "Voltar"
-    };
+    int menu_index = 0;
+    const char* MENU_OPTS[] = { "Aprender a jogar", "Jogar", "Ver ranking", "Voltar" };
     const int MENU_COUNT = 4;
 
     int exit_requested = 0;
 
     while (!WindowShouldClose()) {
+        // Alternar fullscreen
+        if (IsKeyPressed(KEY_F11) ||
+            (IsKeyDown(KEY_LEFT_ALT) && IsKeyPressed(KEY_ENTER))) {
+            ToggleFullscreen();
+            int mon = GetCurrentMonitor();
+            SetWindowSize(GetMonitorWidth(mon), GetMonitorHeight(mon));
+        }
+
+        // ----- UPDATE -----
         switch (current_screen) {
-            case GAME_START_SCREEN: { // MENU
-                if (IsKeyPressed(KEY_DOWN)) {
-                    menu_index = (menu_index + 1) % MENU_COUNT;
-                }
-                if (IsKeyPressed(KEY_UP)) {
-                    menu_index = (menu_index - 1 + MENU_COUNT) % MENU_COUNT;
-                }
+            case GAME_START_SCREEN: {
+                if (IsKeyPressed(KEY_DOWN)) menu_index = (menu_index + 1) % MENU_COUNT;
+                if (IsKeyPressed(KEY_UP))   menu_index = (menu_index - 1 + MENU_COUNT) % MENU_COUNT;
                 if (IsKeyPressed(KEY_ENTER) || IsKeyPressed(KEY_SPACE)) {
-                    if (menu_index == 0) {           // Aprender a jogar
-                        current_screen = GAME_HELP_SCREEN;
-                    } else if (menu_index == 1) {    // Jogar
-                        // Vai para a tela de input do nome
-                        name_input_letterCount = 0;
-                        name_input_buffer[0] = '\0';
+                    if (menu_index == 0)      current_screen = GAME_HELP_SCREEN;
+                    else if (menu_index == 1) { // Jogar -> pedir nome
+                        name_input_letterCount = 0; name_input_buffer[0] = '\0';
                         current_screen = GAME_NAME_INPUT_SCREEN;
-                    } else if (menu_index == 2) {    // Ver ranking
-                        current_screen = GAME_RANKING_SCREEN;
-                    } else if (menu_index == 3) {    // Voltar (sair)
-                        exit_requested = 1;
-                    }
+                    } else if (menu_index == 2) current_screen = GAME_RANKING_SCREEN;
+                    else if (menu_index == 3) exit_requested = 1;
                 }
             } break;
 
             case GAME_NAME_INPUT_SCREEN: {
-                // Captura teclas digitadas
                 int key = GetCharPressed();
                 while (key > 0) {
                     if ((key >= 32) && (key <= 125) && (name_input_letterCount < MAX_NAME_LEN - 1)) {
-                        name_input_buffer[name_input_letterCount] = (char)key;
-                        name_input_letterCount++;
+                        name_input_buffer[name_input_letterCount++] = (char)key;
                         name_input_buffer[name_input_letterCount] = '\0';
                     }
                     key = GetCharPressed();
                 }
-
-                // Backspace
                 if (IsKeyPressed(KEY_BACKSPACE)) {
-                    name_input_letterCount--;
-                    if (name_input_letterCount < 0) name_input_letterCount = 0;
+                    if (name_input_letterCount > 0) name_input_letterCount--;
                     name_input_buffer[name_input_letterCount] = '\0';
                 }
-
-                // Enter para confirmar
                 if (IsKeyPressed(KEY_ENTER) && name_input_letterCount > 0) {
                     strncpy(player_name, name_input_buffer, MAX_NAME_LEN - 1);
                     player_name[MAX_NAME_LEN - 1] = '\0';
                     game_init(&state, MAP_WIDTH);
                     current_screen = GAME_PLAYING;
                 }
-
-                // ESC para cancelar e voltar ao menu
-                if (IsKeyPressed(KEY_ESCAPE)) {
-                    current_screen = GAME_START_SCREEN;
-                }
+                if (IsKeyPressed(KEY_ESCAPE)) current_screen = GAME_START_SCREEN;
             } break;
 
             case GAME_PLAYING: {
-                // Input do jogador
                 if (IsKeyPressed(KEY_W) || IsKeyPressed(KEY_UP))    game_handle_input(&state, 'W');
                 if (IsKeyPressed(KEY_S) || IsKeyPressed(KEY_DOWN))  game_handle_input(&state, 'S');
                 if (IsKeyPressed(KEY_A) || IsKeyPressed(KEY_LEFT))  game_handle_input(&state, 'A');
                 if (IsKeyPressed(KEY_D) || IsKeyPressed(KEY_RIGHT)) game_handle_input(&state, 'D');
 
-                // Atualiza jogo
                 game_update(&state);
 
-                // Game over?
                 if (state.game_over) {
                     ranking_add(ranking, player_name, state.score, RANKING_FILE);
                     current_screen = GAME_OVER_SCREEN;
                 }
-
-                // ESC durante o jogo: volta ao MENU
-                if (IsKeyPressed(KEY_M)) {
-                    current_screen = GAME_START_SCREEN;
-                }
+                if (IsKeyPressed(KEY_M)) current_screen = GAME_START_SCREEN;
             } break;
 
             case GAME_OVER_SCREEN: {
-                // R: jogar novamente
                 if (IsKeyPressed(KEY_R)) {
-                    // Vai para a tela de input do nome
-                    name_input_letterCount = 0;
-                    name_input_buffer[0] = '\0';
+                    name_input_letterCount = 0; name_input_buffer[0] = '\0';
                     current_screen = GAME_NAME_INPUT_SCREEN;
                 }
-                // M ou ESC: volta ao MENU
-                if (IsKeyPressed(KEY_M)) {
-                    current_screen = GAME_START_SCREEN;
-                }
+                if (IsKeyPressed(KEY_M)) current_screen = GAME_START_SCREEN;
             } break;
 
             case GAME_HELP_SCREEN: {
-                // Apenas instruções; M volta ao MENU
-                if (IsKeyPressed(KEY_M)) {
-                    current_screen = GAME_START_SCREEN;
-                }
+                if (IsKeyPressed(KEY_M)) current_screen = GAME_START_SCREEN;
             } break;
 
             case GAME_RANKING_SCREEN: {
-                // Apenas visualização do ranking; M volta ao MENU
-                if (IsKeyPressed(KEY_M)) {
-                    current_screen = GAME_START_SCREEN;
-                }
+                if (IsKeyPressed(KEY_M)) current_screen = GAME_START_SCREEN;
             } break;
         }
 
         if (exit_requested) break;
 
-        // --- RENDER ---
+        // ----- DRAW to virtual target (800x600) -----
+        BeginTextureMode(target);
+        {
+            // desenha como antes, usando SCREEN_WIDTH/HEIGHT fixos
+            switch (current_screen) {
+                case GAME_START_SCREEN:
+                    render_menu_screen(menu_index, MENU_OPTS, MENU_COUNT);
+                    break;
+                case GAME_NAME_INPUT_SCREEN:
+                    render_name_input_screen(name_input_buffer, name_input_letterCount);
+                    break;
+                case GAME_PLAYING:
+                    render_game(&state);
+                    break;
+                case GAME_OVER_SCREEN:
+                    render_game_over_screen(&state, player_name);
+                    break;
+                case GAME_HELP_SCREEN:
+                    render_help_screen();
+                    break;
+                case GAME_RANKING_SCREEN:
+                    render_ranking_screen(ranking);
+                    break;
+            }
+        }
+        EndTextureMode();
+
+        // ----- DRAW target scaled to screen (letterbox) -----
         BeginDrawing();
         ClearBackground(BLACK);
 
-        switch (current_screen) {
-            case GAME_START_SCREEN:
-                render_menu_screen(menu_index, MENU_OPTS, MENU_COUNT);
-                break;
-            case GAME_NAME_INPUT_SCREEN:
-                render_name_input_screen(name_input_buffer, name_input_letterCount);
-                break;
-            case GAME_PLAYING:
-                render_game(&state);
-                break;
-            case GAME_OVER_SCREEN:
-                render_game_over_screen(&state, player_name);
-                break;
-            case GAME_HELP_SCREEN:
-                render_help_screen();
-                break;
-            case GAME_RANKING_SCREEN:
-                render_ranking_screen(ranking);
-                break;
-        }
+        float sw = (float)GetScreenWidth();
+        float sh = (float)GetScreenHeight();
+        float scale = (sw / VIRTUAL_W < sh / VIRTUAL_H) ? (sw / VIRTUAL_W) : (sh / VIRTUAL_H);
+        float dw = VIRTUAL_W * scale;
+        float dh = VIRTUAL_H * scale;
+        float dx = (sw - dw) * 0.5f;
+        float dy = (sh - dh) * 0.5f;
+
+        DrawTexturePro(
+            target.texture,
+            (Rectangle){0, 0, (float)VIRTUAL_W, -(float)VIRTUAL_H},  // altura negativa = corrige flip
+            (Rectangle){dx, dy, dw, dh},
+            (Vector2){0, 0},
+            0.0f,
+            WHITE
+        );
+
         EndDrawing();
     }
+
+    UnloadRenderTexture(target);
     CloseWindow();
 }
 
+// ----- Telas auxiliares -----
 static void render_help_screen(void)
 {
     ClearBackground(BLACK);
@@ -390,7 +340,6 @@ static void render_help_screen(void)
     DrawText("- No rio, fique em cima dos troncos", x, y, 22, WHITE); y += lh;
     DrawText("- O mapa sobe automaticamente a cada intervalo", x, y, 22, WHITE); y += lh;
     DrawText("- Pontue ao alcançar linhas ainda não visitadas", x, y, 22, WHITE); y += lh + 10;
-
     DrawText("'M' para voltar ao menu", x, y, 22, GRAY);
 }
 
@@ -400,23 +349,42 @@ static void render_ranking_screen(const Ranking *ranking)
     DrawText("Ranking", SCREEN_WIDTH/2 - 70, 80, 32, YELLOW);
     DrawText("'M' para voltar ao menu", SCREEN_WIDTH/2 - 120, 120, 20, GRAY);
 
-    int x = SCREEN_WIDTH/2 - 220;
+    int x = SCREEN_WIDTH/2 - 200;
     int y = 170;
-    int lh = 28;
+    int lh = 35;  // Aumentado o espaçamento entre linhas
 
     int maxShow = 10;
     int n = 0;
+
+    // Cabeçalho das colunas
+    DrawText("Pos", x, y, 22, LIGHTGRAY);
+    DrawText("Nome", x + 80, y, 22, LIGHTGRAY);
+    DrawText("Pontuação", x + 280, y, 22, LIGHTGRAY);
+    y += lh + 5;  // Espaço extra após o cabeçalho
+    
+    // Linha separadora
+    DrawLine(x - 10, y - 5, x + 380, y - 5, GRAY);
 
     for (int i = 0; i < ranking->count && n < maxShow; ++i) {
         const char* name = ranking->items[i].name;
         int score = ranking->items[i].score;
 
-        DrawText(TextFormat("%2d) %-16s  %6d", i + 1, name, score), x, y, 24, WHITE);
+        // Posição (mais espaçada)
+        DrawText(TextFormat("%2d.", i + 1), x, y, 24, WHITE);
+        
+        // Nome (com mais espaço)
+        DrawText(name, x + 80, y, 24, WHITE);
+        
+        // Pontuação (alinhada à direita, mais espaçada)
+        const char* scoreText = TextFormat("%d", score);
+        int scoreWidth = MeasureText(scoreText, 24);
+        DrawText(scoreText, x + 380 - scoreWidth, y, 24, YELLOW);
+        
         y += lh;
         n++;
     }
 
     if (n == 0) {
-        DrawText("Nenhum registro encontrado ainda.", x, y, 22, GRAY);
+        DrawText("Nenhum registro encontrado ainda.", SCREEN_WIDTH/2 - 180, y, 22, GRAY);
     }
 }
