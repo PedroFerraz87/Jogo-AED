@@ -59,8 +59,8 @@ typedef struct GameState {
 
     int world_head;       // Quantas linhas já nasceram no topo (quantos scrolls)
     int min_abs_reached;  // Menor índice absoluto já alcançado (melhor progresso)
-    int  last_abs;          // Abs do frame anterior (usado p/ detectar avanço real)
-    int  advanced_this_tick;// 1 se subiu y neste frame (player_y diminuiu)
+    int last_abs;          // Abs do frame anterior (usado p/ detectar avanço real)
+    int advanced_this_tick; // 1 se subiu y neste frame (player_y diminuiu)
     
     // === 2 PLAYER MODE ===
     Player p1, p2;              // Estruturas dos jogadores (P1 e P2)

@@ -130,7 +130,6 @@ static void render_game(const GameState *state) {
     DrawRectangleLines(MARGIN, MARGIN, MAP_WIDTH * CELL_SIZE, MAP_HEIGHT * CELL_SIZE, WHITE);
 
     DrawText(TextFormat("Score: %d", state->score), MARGIN, 10, 20, WHITE);
-    DrawText(TextFormat("Pos: (%d,%d)", state->player_x, state->player_y), MARGIN, 55, 14, YELLOW);
 
     if (state->player_y >= 0 && state->player_y < MAP_HEIGHT) {
         const Row *row = &state->rows[state->player_y];
@@ -227,7 +226,6 @@ static void render_game_two(const GameState *state) {
     // Desenha bordas do mapa
     DrawRectangleLines(MARGIN, MARGIN, MAP_WIDTH * CELL_SIZE, MAP_HEIGHT * CELL_SIZE, WHITE);
 
-    // === HUD: Informações dos jogadores ===
     // Pontuação do Jogador 1 (amarelo)
     DrawText(TextFormat("Pontuação do P1: %d", p1_score), MARGIN, 10, 20, COLOR_PLAYER1);
     // Pontuação do Jogador 2 (ciano)
@@ -235,16 +233,16 @@ static void render_game_two(const GameState *state) {
     
     // Status de vida do Jogador 1
     if (p1_alive) {
-        DrawText("P1: VIVO", MARGIN, 60, 16, GREEN);
+        DrawText("P1: Vivo", MARGIN, 60, 16, GREEN);
     } else {
-        DrawText("P1: MORTO", MARGIN, 60, 16, RED);
+        DrawText("P1: Morto", MARGIN, 60, 16, RED);
     }
     
     // Status de vida do Jogador 2
     if (p2_alive) {
-        DrawText("P2: VIVO", MARGIN, 80, 16, GREEN);
+        DrawText("P2: Vivo", MARGIN, 80, 16, GREEN);
     } else {
-        DrawText("P2: MORTO", MARGIN, 80, 16, RED);
+        DrawText("P2: Morto", MARGIN, 80, 16, RED);
     }
 }
 
@@ -618,7 +616,7 @@ static void render_ranking_screen(const Ranking *ranking)
     int n = 0;
 
     // Cabeçalho das colunas
-    DrawText("Posição", x, y, 22, LIGHTGRAY);
+    DrawText("Pos", x, y, 22, LIGHTGRAY);
     DrawText("Nome", x + 80, y, 22, LIGHTGRAY);
     DrawText("Pontuação", x + 280, y, 22, LIGHTGRAY);
     y += lh + 5;  // Espaço extra após o cabeçalho
