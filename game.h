@@ -16,6 +16,7 @@
 #define CHAR_ROAD   '-'
 #define CHAR_RIVER  '\xE1' /* fallback se '≈' não for suportado */
 #define CHAR_GRASS  '#'
+#define CHAR_LIFE   '+'    // Poder de vida
 
 typedef enum RowType {
     ROW_GRASS = 0,
@@ -61,6 +62,12 @@ typedef struct GameState {
     int min_abs_reached;  // Menor índice absoluto já alcançado (melhor progresso)
     int last_abs;          // Abs do frame anterior (usado p/ detectar avanço real)
     int advanced_this_tick; // 1 se subiu y neste frame (player_y diminuiu)
+    
+    // Sistema de vidas
+    int vidas;              // Vidas atuais do jogador
+    int renascendo;         // 1 se está em processo de renascimento
+    float renascer_timer;   // Tempo restante do renascimento (em segundos)
+    int life_power_spawned; // Posição do mundo onde o último poder de vida foi gerado
     
     // === 2 PLAYER MODE ===
     Player p1, p2;              // Estruturas dos jogadores (P1 e P2)

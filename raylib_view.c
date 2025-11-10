@@ -4,6 +4,8 @@
 #include "ranking.h"
 #include "utils.h"
 #include <string.h>
+#include <stdio.h>  // Para snprintf()
+#include <math.h>   // Para ceil()
 
 // ---- FORWARD DECLARATIONS (prototipos) ----
 static void render_menu_screen(int menu_index, const char** options, int count);
@@ -111,6 +113,11 @@ static void render_row(const Row *row, int y, int player_x, int player_y) {
 
             if (cell == CHAR_CAR)      draw_car_voxel(cell_x, start_y, COLOR_CAR);
             else if (cell == CHAR_LOG) draw_log_voxel(cell_x, start_y);
+            else if (cell == CHAR_LIFE) {
+                // Desenha poder de vida (coração ou símbolo +)
+                DrawCircle(cell_x + CELL_SIZE/2, start_y + CELL_SIZE/2, CELL_SIZE/3, RED);
+                DrawText("+", cell_x + CELL_SIZE/2 - 5, start_y + CELL_SIZE/2 - 8, 16, WHITE);
+            }
         }
     }
 
@@ -123,6 +130,25 @@ static void render_row(const Row *row, int y, int player_x, int player_y) {
 static void render_game(const GameState *state) {
     ClearBackground(BLACK);
 
+    // Se está renascendo, mostra tela de renascimento
+    if (state->renascendo) {
+        // Fundo semi-transparente
+        DrawRectangle(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, (Color){0, 0, 0, 200});
+        
+        // Título
+        DrawText("Você perdeu uma vida!", SCREEN_WIDTH/2 - 150, SCREEN_HEIGHT/2 - 80, 30, RED);
+        
+        // Contagem regressiva
+        int countdown = (int)ceil(state->renascer_timer);
+        if (countdown < 0) countdown = 0;
+        char countdown_text[32];
+        snprintf(countdown_text, sizeof(countdown_text), "Reaparecendo em %d...", countdown);
+        DrawText(countdown_text, SCREEN_WIDTH/2 - 120, SCREEN_HEIGHT/2 - 20, 24, YELLOW);
+        
+        // Não renderiza o jogo durante renascimento
+        return;
+    }
+
     for (int y = 0; y < MAP_HEIGHT; ++y) {
         render_row(&state->rows[y], y, state->player_x, state->player_y);
     }
@@ -130,6 +156,38 @@ static void render_game(const GameState *state) {
     DrawRectangleLines(MARGIN, MARGIN, MAP_WIDTH * CELL_SIZE, MAP_HEIGHT * CELL_SIZE, WHITE);
 
     DrawText(TextFormat("Score: %d", state->score), MARGIN, 10, 20, WHITE);
+    
+    // Desenha contador de vidas
+    char vidas_text[32];
+    if (state->vidas > 0) {
+        snprintf(vidas_text, sizeof(vidas_text), "Vidas: %d", state->vidas);
+    } else {
+        snprintf(vidas_text, sizeof(vidas_text), "Vidas: 0");
+    }
+    DrawText(vidas_text, MARGIN, 35, 20, WHITE);
+    
+    // Desenha corações para cada vida
+    int heart_x = MARGIN + MeasureText(vidas_text, 20) + 10;
+    int heart_y = 35;
+    for (int i = 0; i < state->vidas; i++) {
+        Color heart_color = (i == state->vidas - 1 && ((int)(GetTime() * 2)) % 2 == 0) ? 
+                           (Color){255, 200, 200, 255} : RED;
+        
+        int cx = heart_x + i * 25;
+        int cy = heart_y + 10;
+        int size = 14;
+        
+        // Desenha coração: dois círculos no topo e triângulo embaixo
+        // Círculo esquerdo
+        DrawCircle(cx - size/3, cy - size/6, size/3, heart_color);
+        // Círculo direito  
+        DrawCircle(cx + size/3, cy - size/6, size/3, heart_color);
+        // Triângulo inferior
+        Vector2 v1 = {cx - size/2, cy};
+        Vector2 v2 = {cx + size/2, cy};
+        Vector2 v3 = {cx, cy + size/2};
+        DrawTriangle(v1, v2, v3, heart_color);
+    }
 
     if (state->player_y >= 0 && state->player_y < MAP_HEIGHT) {
         const Row *row = &state->rows[state->player_y];
@@ -185,6 +243,11 @@ static void render_row_two(const Row *row, int y, int p1_x, int p1_y, int p2_x, 
 
             if (cell == CHAR_CAR)      draw_car_voxel(cell_x, start_y, COLOR_CAR);
             else if (cell == CHAR_LOG) draw_log_voxel(cell_x, start_y);
+            else if (cell == CHAR_LIFE) {
+                // Desenha poder de vida (coração ou símbolo +)
+                DrawCircle(cell_x + CELL_SIZE/2, start_y + CELL_SIZE/2, CELL_SIZE/3, RED);
+                DrawText("+", cell_x + CELL_SIZE/2 - 5, start_y + CELL_SIZE/2 - 8, 16, WHITE);
+            }
         }
     }
 
@@ -208,6 +271,8 @@ static void render_row_two(const Row *row, int y, int p1_x, int p1_y, int p2_x, 
  */
 static void render_game_two(const GameState *state) {
     ClearBackground(BLACK);
+
+    // Modo 2P não tem sistema de vidas/renascimento
 
     // Obtém posições e estados de ambos os jogadores
     int p1_x, p1_y, p2_x, p2_y;
@@ -233,16 +298,16 @@ static void render_game_two(const GameState *state) {
     
     // Status de vida do Jogador 1
     if (p1_alive) {
-        DrawText("P1: Vivo", MARGIN, 60, 16, GREEN);
+        DrawText("P1: Vivo", MARGIN, 85, 16, GREEN);
     } else {
-        DrawText("P1: Morto", MARGIN, 60, 16, RED);
+        DrawText("P1: Morto", MARGIN, 85, 16, RED);
     }
     
     // Status de vida do Jogador 2
     if (p2_alive) {
-        DrawText("P2: Vivo", MARGIN, 80, 16, GREEN);
+        DrawText("P2: Vivo", MARGIN, 105, 16, GREEN);
     } else {
-        DrawText("P2: Morto", MARGIN, 80, 16, RED);
+        DrawText("P2: Morto", MARGIN, 105, 16, RED);
     }
 }
 

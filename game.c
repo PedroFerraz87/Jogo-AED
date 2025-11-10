@@ -1,9 +1,11 @@
 // game.c
 #include "game.h"
 #include "utils.h"
+#include "raylib.h"  // Para GetFrameTime()
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <math.h>    // Para ceil()
 
 /* -------------------------------------------------------
    CONFIG GERAL
@@ -20,7 +22,7 @@ static void fill_row_with_gaps(CircularQueue *q, char obstacle,
                                int gapMin, int gapMax);
 static RowType generate_row_type(int world_position);
 static void create_obstacles(CircularQueue *queue, RowType type);
-static void generate_row(Row *row, int world_position);
+static void generate_row(Row *row, int world_position, GameState *state);
 static void row_destroy(Row *row);
 static void ensure_safe_area(GameState *state);
 static void scroll_world_down(GameState *state);
@@ -28,6 +30,9 @@ static void move_rows(GameState *state);
 static void check_collision(GameState *state);
 // === 2 PLAYER MODE ===
 static void check_collision_player(GameState *state, Player *player);
+// Sistema de vidas
+static void handle_death(GameState *state);
+static void collect_life_power(GameState *state);
 
 /* -------------------------------------------------------
    PREENCHIMENTO COM OBSTÁCULOS + GAPSF
@@ -94,8 +99,8 @@ static void create_obstacles(CircularQueue *queue, RowType type)
 
 /* -------------------------------------------------------
    GERA LINHA COMPLETA
- ------------------------------------------------------- */
-static void generate_row(Row *row, int world_position)
+------------------------------------------------------- */
+static void generate_row(Row *row, int world_position, GameState *state)
 {
     if (!row) return;
 
@@ -120,6 +125,31 @@ static void generate_row(Row *row, int world_position)
     row->moved_this_tick = 0;            // <<-- IMPORTANTE: inicia zerado
 
     create_obstacles(row->queue, type);
+    
+    // Sistema de vidas: gera poder de vida a cada 25 linhas em linhas de grama (apenas modo 1 jogador)
+    if (state && !state->two_players && type == ROW_GRASS && world_position > 0 && 
+        world_position % 25 == 0 && world_position != state->life_power_spawned) {
+        // Verifica se já existe um poder de vida no mapa
+        int has_life_power = 0;
+        for (int y = 0; y < MAP_HEIGHT; ++y) {
+            if (state->rows[y].queue) {
+                for (int x = 0; x < MAP_WIDTH; ++x) {
+                    if (queue_get_cell(state->rows[y].queue, x) == CHAR_LIFE) {
+                        has_life_power = 1;
+                        break;
+                    }
+                }
+                if (has_life_power) break;
+            }
+        }
+        
+        // Se não há poder de vida no mapa, cria um em posição aleatória
+        if (!has_life_power) {
+            int life_x = utils_random_int(0, MAP_WIDTH - 1);
+            queue_set_cell(row->queue, life_x, CHAR_LIFE);
+            state->life_power_spawned = world_position;
+        }
+    }
 }
 
 /* -------------------------------------------------------
@@ -193,7 +223,7 @@ static void ensure_safe_area(GameState *state)
 
     // --- GERA UMA NOVA LINHA NO TOPO ---
     row_destroy(&state->rows[0]);              // libera topo antigo (se houver)
-    generate_row(&state->rows[0], state->world_position); // cria nova linha de mundo
+    generate_row(&state->rows[0], state->world_position, state); // cria nova linha de mundo
 
     // --- ZERA FLAGS DE MOVIMENTO (scroll não conta como "mover linha") ---
     for (int y = 0; y < MAP_HEIGHT; ++y) {
@@ -271,7 +301,7 @@ static void ensure_safe_area(GameState *state)
  
      // Gera o buffer inicial de linhas visíveis
      for (int y = 0; y < MAP_HEIGHT; ++y) {
-         generate_row(&state->rows[y], y);
+         generate_row(&state->rows[y], y, state);
      }
  
      ensure_safe_area(state);
@@ -296,6 +326,12 @@ static void ensure_safe_area(GameState *state)
      // Outros controles
      state->world_position = MAP_HEIGHT; // mantém seu comportamento original
      state->just_scrolled  = 0;          // nenhum scroll ocorreu ainda
+     
+    // Sistema de vidas
+    state->vidas = 1;                    // Começa com 1 vida
+    state->renascendo = 0;               // Não está renascendo
+    state->renascer_timer = 0.0f;        // Timer zerado
+    state->life_power_spawned = -25;     // Inicializa para permitir primeiro spawn
      
     // === 2 PLAYER MODE ===
     // Inicializa modo 1 jogador por padrão (two_players = 0)
@@ -358,13 +394,89 @@ static void move_rows(GameState *state)
 }
 
 /* -------------------------------------------------------
+   COLETA PODER DE VIDA
+   - Verifica se o jogador está em uma célula com CHAR_LIFE
+   - Adiciona +1 vida (máximo 5)
+------------------------------------------------------- */
+static void collect_life_power(GameState *state)
+{
+    // Sistema de vidas só funciona no modo 1 jogador
+    if (!state || state->renascendo || state->two_players) return;
+    
+    // Modo 1 jogador apenas
+    if (state->player_y >= 0 && state->player_y < MAP_HEIGHT) {
+        Row *row = &state->rows[state->player_y];
+        if (row->queue) {
+            char cell = queue_get_cell(row->queue, state->player_x);
+            if (cell == CHAR_LIFE) {
+                // Coleta o poder de vida
+                if (state->vidas < 5) {
+                    state->vidas++;
+                }
+                // Remove o poder do mapa
+                queue_set_cell(row->queue, state->player_x, ' ');
+                state->life_power_spawned = -1; // Permite gerar novo poder
+            }
+        }
+    }
+}
+
+/* -------------------------------------------------------
+   GERENCIA MORTE E RENASCIMENTO
+   - Reduz uma vida
+   - Se ainda tem vidas, inicia processo de renascimento
+   - Se não tem mais vidas, termina o jogo
+------------------------------------------------------- */
+static void handle_death(GameState *state)
+{
+    // Sistema de vidas só funciona no modo 1 jogador
+    if (!state || state->two_players) {
+        // No modo 2 jogadores, termina o jogo imediatamente
+        if (state) state->game_over = 1;
+        return;
+    }
+    
+    // Reduz uma vida
+    state->vidas--;
+    
+    // Se não tem mais vidas, termina o jogo
+    if (state->vidas <= 0) {
+        state->game_over = 1;
+        return;
+    }
+    
+    // Inicia processo de renascimento
+    state->renascendo = 1;
+    state->renascer_timer = 3.0f; // 3 segundos
+    
+    // Reposiciona o jogador no centro inferior (posição segura)
+    state->player_x = MAP_WIDTH / 2;
+    state->player_y = MAP_HEIGHT - 2;
+    
+    // Atualiza a posição absoluta para permitir pontuação imediata após renascer
+    int abs_now = state->world_head + state->player_y;
+    state->min_abs_reached = abs_now;  // Reseta o melhor progresso para a posição atual
+    state->last_abs = abs_now;         // Atualiza histórico
+    state->advanced_this_tick = 0;     // Reseta flag de avanço
+}
+
+/* -------------------------------------------------------
    COLISÕES (robustas)
    - Estrada: não-espaço => carro => morre
    - Rio: espaço => água => morre
- ------------------------------------------------------- */
+   - Verifica coleta de poder de vida
+------------------------------------------------------- */
 static void check_collision(GameState *state)
 {
     if (!state || state->game_over) return;
+    
+    // Sistema de renascimento só funciona no modo 1 jogador
+    if (state->renascendo && !state->two_players) return;
+
+    // Verifica coleta de poder de vida primeiro (apenas modo 1 jogador)
+    if (!state->two_players) {
+        collect_life_power(state);
+    }
 
     if (state->two_players) {
         // Modo 2 jogadores: verifica ambos
@@ -379,8 +491,14 @@ static void check_collision(GameState *state)
     }
 
     // Modo 1 jogador (compatibilidade)
-    if (state->player_x < 0 || state->player_x >= MAP_WIDTH) { state->game_over = 1; return; }
-    if (state->player_y < 0 || state->player_y >= MAP_HEIGHT){ state->game_over = 1; return; }
+    if (state->player_x < 0 || state->player_x >= MAP_WIDTH) { 
+        handle_death(state);
+        return; 
+    }
+    if (state->player_y < 0 || state->player_y >= MAP_HEIGHT) { 
+        handle_death(state);
+        return; 
+    }
 
     Row *row = &state->rows[state->player_y];
     if (row->type == ROW_GRASS) return;
@@ -389,7 +507,9 @@ static void check_collision(GameState *state)
     char cell = queue_get_cell(row->queue, state->player_x);
 
     if (row->type == ROW_ROAD) {
-        if (cell != ' ') state->game_over = 1;
+        if (cell != ' ') {
+            handle_death(state);
+        }
         return;
     }
 
@@ -400,7 +520,7 @@ static void check_collision(GameState *state)
             if (row->moved_this_tick && row->direction > 0 && state->player_x == MAP_WIDTH - 1) {
                 return; // protege o jogador do falso negativo
             }
-            state->game_over = 1;
+            handle_death(state);
         }
         return;
     }
@@ -464,10 +584,29 @@ static void check_collision_player(GameState *state, Player *player)
 
 /* -------------------------------------------------------
    UPDATE: SCROLL (tempo), MOVE (carros/troncos), PUSH, COLLIDE
- ------------------------------------------------------- */
+------------------------------------------------------- */
  void game_update(GameState *state)
  {
      if (!state || state->game_over) return;
+     
+     // Sistema de renascimento: pausa o jogo durante o renascimento (apenas modo 1 jogador)
+     if (state->renascendo && !state->two_players) {
+         // Decrementa o timer
+         state->renascer_timer -= GetFrameTime();
+         
+         // Quando o timer chega a 0, termina o renascimento
+         if (state->renascer_timer <= 0.0f) {
+             state->renascendo = 0;
+             state->renascer_timer = 0.0f;
+             // Jogador já foi reposicionado em handle_death()
+             // Garante que a posição absoluta está atualizada para pontuação imediata
+             int abs_now = state->world_head + state->player_y;
+             state->min_abs_reached = abs_now;
+             state->last_abs = abs_now;
+         }
+         // Durante o renascimento, não atualiza nada mais
+         return;
+     }
  
      // 1) Scroll vertical por tempo
      static int scroll_timer = 0;
@@ -583,7 +722,7 @@ static void check_collision_player(GameState *state, Player *player)
  ------------------------------------------------------- */
  void game_handle_input(GameState *state, int key)
 {
-    if (!state || state->game_over) return;      // Sem estado ou jogo encerrado: não faz nada.
+    if (!state || state->game_over || state->renascendo) return;      // Sem estado, jogo encerrado ou renascendo: não faz nada.
 
     int old_x = state->player_x;                 // Guarda posição anterior para desfazer se morrer.
     int old_y = state->player_y;
@@ -674,8 +813,8 @@ void game_set_two_players(GameState *state, int enabled)
  */
 void game_handle_input_player(GameState *state, int player_id, char key)
 {
-    // Validações: estado válido, jogo não acabou, modo 2P ativo
-    if (!state || state->game_over || !state->two_players) return;
+    // Validações: estado válido, jogo não acabou, modo 2P ativo, não está renascendo
+    if (!state || state->game_over || !state->two_players || state->renascendo) return;
     
     // Seleciona o jogador correto (P1 ou P2)
     Player *player = (player_id == 1) ? &state->p1 : &state->p2;
