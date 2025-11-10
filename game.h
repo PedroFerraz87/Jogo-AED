@@ -49,18 +49,18 @@ typedef struct Player {
 
 typedef struct GameState {
     Row rows[MAP_HEIGHT];
-    int player_x;  // mantido para compatibilidade com modo 1P
-    int player_y;  // mantido para compatibilidade com modo 1P
-    int score;     // mantido para compatibilidade com modo 1P
+    int player_x;  
+    int player_y;  
+    int score;    
     int game_over;
 
-    int world_position;   // já existia
-    int just_scrolled;    // já existia
+    int world_position;   
+    int just_scrolled;    
 
-    int world_head;       // NOVO: quantas linhas já nasceram no topo (quantos scrolls)
-    int min_abs_reached;  // NOVO: menor índice absoluto já alcançado (melhor progresso)
-    int  last_abs;          // NOVO: abs do frame anterior (usado p/ detectar avanço real)
-    int  advanced_this_tick;// NOVO: 1 se subiu y neste frame (player_y diminuiu)
+    int world_head;       // Quantas linhas já nasceram no topo (quantos scrolls)
+    int min_abs_reached;  // Menor índice absoluto já alcançado (melhor progresso)
+    int  last_abs;          // Abs do frame anterior (usado p/ detectar avanço real)
+    int  advanced_this_tick;// 1 se subiu y neste frame (player_y diminuiu)
     
     // === 2 PLAYER MODE ===
     Player p1, p2;              // Estruturas dos jogadores (P1 e P2)

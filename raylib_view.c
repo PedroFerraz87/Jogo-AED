@@ -134,14 +134,13 @@ static void render_game(const GameState *state) {
 
     if (state->player_y >= 0 && state->player_y < MAP_HEIGHT) {
         const Row *row = &state->rows[state->player_y];
-        const char* row_type = (row->type == ROW_GRASS) ? "GRASS" :
-                               (row->type == ROW_ROAD)  ? "ROAD"  : "RIVER";
-        DrawText(TextFormat("Row Type: %s", row_type), MARGIN, 75, 14, GREEN);
+        const char* row_type = (row->type == ROW_GRASS) ? "Grama" :
+                               (row->type == ROW_ROAD)  ? "Rua"  : "Rio";
+        DrawText(TextFormat("Tipo da fileira: %s", row_type), MARGIN, 75, 14, GREEN);
 
         if (row->type == ROW_RIVER && row->queue) {
             char cell = queue_get_cell(row->queue, state->player_x);
-            if (cell == CHAR_LOG) DrawText("ON LOG - SAFE!", MARGIN, 95, 16, GREEN);
-            else                  DrawText("IN WATER - DANGER!", MARGIN, 95, 16, RED);
+            if (cell == CHAR_LOG) DrawText("Em cima do tronco - seguro!", MARGIN, 95, 16, GREEN);
         }
     }
 }
@@ -230,9 +229,9 @@ static void render_game_two(const GameState *state) {
 
     // === HUD: Informações dos jogadores ===
     // Pontuação do Jogador 1 (amarelo)
-    DrawText(TextFormat("P1 Score: %d", p1_score), MARGIN, 10, 20, COLOR_PLAYER1);
+    DrawText(TextFormat("Pontuação do P1: %d", p1_score), MARGIN, 10, 20, COLOR_PLAYER1);
     // Pontuação do Jogador 2 (ciano)
-    DrawText(TextFormat("P2 Score: %d", p2_score), MARGIN, 35, 20, COLOR_PLAYER2);
+    DrawText(TextFormat("Pontuação do P2: %d", p2_score), MARGIN, 35, 20, COLOR_PLAYER2);
     
     // Status de vida do Jogador 1
     if (p1_alive) {
@@ -285,10 +284,10 @@ static void render_game_over_screen(const GameState *state, const char *player_n
         int p2_score = game_get_player_score(state, 2);
         
         // Mostra pontuação do Jogador 1 (amarelo)
-        DrawText(TextFormat("P1 (%s): %d", player_name ? player_name : "Player1", p1_score), 
+        DrawText(TextFormat("P1 (%s): %d", player_name ? player_name : "Jogador1", p1_score), 
                  SCREEN_WIDTH/2 - 120, SCREEN_HEIGHT/2 - 90, 22, COLOR_PLAYER1);
         // Mostra pontuação do Jogador 2 (ciano)
-        DrawText(TextFormat("P2 (%s): %d", player2_name ? player2_name : "Player2", p2_score), 
+        DrawText(TextFormat("P2 (%s): %d", player2_name ? player2_name : "Jogador2", p2_score), 
                  SCREEN_WIDTH/2 - 120, SCREEN_HEIGHT/2 - 60, 22, COLOR_PLAYER2);
         
         // Verifica se houve empate ou vencedor
@@ -306,13 +305,13 @@ static void render_game_over_screen(const GameState *state, const char *player_n
         }
     } else {
         // Modo 1 jogador: mostra pontuação final normal
-        DrawText(TextFormat("Final Score: %d", state->score), SCREEN_WIDTH/2 - 100, SCREEN_HEIGHT/2 - 50, 24, WHITE);
-        DrawText(TextFormat("Player: %s", player_name), SCREEN_WIDTH/2 - 80, SCREEN_HEIGHT/2 + 10, 20, GREEN);
+        DrawText(TextFormat("Pontuação final: %d", state->score), SCREEN_WIDTH/2 - 100, SCREEN_HEIGHT/2 - 50, 24, WHITE);
+        DrawText(TextFormat("Jogador: %s", player_name), SCREEN_WIDTH/2 - 80, SCREEN_HEIGHT/2 + 10, 20, GREEN);
     }
     
     // Instruções para o jogador
-    DrawText("Press R to play again", SCREEN_WIDTH/2 - 100, SCREEN_HEIGHT/2 + 50, 20, WHITE);
-    DrawText("Press M to return to menu", SCREEN_WIDTH/2 - 120, SCREEN_HEIGHT/2 + 80, 20, WHITE);
+    DrawText("Pressione R para jogar de novo", SCREEN_WIDTH/2 - 100, SCREEN_HEIGHT/2 + 50, 20, WHITE);
+    DrawText("Pressione M para voltar para o menu", SCREEN_WIDTH/2 - 120, SCREEN_HEIGHT/2 + 80, 20, WHITE);
 }
 
 /**
@@ -600,7 +599,7 @@ static void render_help_screen(void)
     DrawText("- Jogador 2 (Ciano): Setas", x + 20, y, 22, COLOR_PLAYER2); y += lh + 10;
     DrawText("- Evite carros na estrada", x, y, 22, WHITE); y += lh;
     DrawText("- No rio, fique em cima dos troncos", x, y, 22, WHITE); y += lh;
-    DrawText("- O mapa sobe automaticamente a cada intervalo", x, y, 22, WHITE); y += lh;
+    DrawText("- O mapa sobe automaticamente a cada intervalo de tempo", x, y, 22, WHITE); y += lh;
     DrawText("- Pontue ao alcançar linhas ainda não visitadas", x, y, 22, WHITE); y += lh + 10;
     DrawText("'M' para voltar ao menu", x, y, 22, GRAY);
 }
@@ -619,7 +618,7 @@ static void render_ranking_screen(const Ranking *ranking)
     int n = 0;
 
     // Cabeçalho das colunas
-    DrawText("Pos", x, y, 22, LIGHTGRAY);
+    DrawText("Posição", x, y, 22, LIGHTGRAY);
     DrawText("Nome", x + 80, y, 22, LIGHTGRAY);
     DrawText("Pontuação", x + 280, y, 22, LIGHTGRAY);
     y += lh + 5;  // Espaço extra após o cabeçalho

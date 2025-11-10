@@ -596,7 +596,7 @@ static void check_collision_player(GameState *state, Player *player)
     } else if (key == 'A') {                     // Esquerda (se não está na borda).
         if (state->player_x > 0) state->player_x--;
     } else if (key == 'D') {                     // Direita (se não está na borda).
-        if (state->player_x < MAP_WIDTH - 1) state->player_x++;
+        if (state->player_x < MAP_WIDTH - 2) state->player_x++;
     } else if (key == 'Q') {                     // Sair.
         state->game_over = 1;
     }
