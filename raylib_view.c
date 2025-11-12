@@ -43,6 +43,13 @@ typedef enum {
     GAME_RANKING_SCREEN
 } GameScreen;
 
+// === TEXTURAS/SPRITES ===
+// Variáveis estáticas para armazenar as texturas dos sprites
+static Texture2D car_texture = {0};
+static Texture2D log_texture = {0};
+static Texture2D bird_texture = {0};  // Sprite do pássaro (jogador no modo 1 jogador)
+static Texture2D heart_texture = {0}; // Sprite do coração (poder de vida)
+
 // ----- Desenho voxel -----
 /**
  * Desenha um jogador no estilo voxel com cor customizável
@@ -66,24 +73,64 @@ static void draw_player_voxel(int x, int y, Color player_color) {
 /**
  * Função de compatibilidade: mantém função original usando cor padrão
  * Usada no modo 1 jogador para manter compatibilidade
+ * Agora usa o sprite do pássaro se disponível
  */
 static void draw_player_voxel_old(int x, int y) {
-    draw_player_voxel(x, y, COLOR_PLAYER);
+    // Se a textura do pássaro foi carregada, usa a imagem PNG
+    if (bird_texture.id != 0) {
+        DrawTexturePro(
+            bird_texture,
+            (Rectangle){0, 0, (float)bird_texture.width, (float)bird_texture.height},
+            (Rectangle){(float)x, (float)y, (float)CELL_SIZE, (float)CELL_SIZE},
+            (Vector2){0, 0},
+            0.0f,
+            WHITE
+        );
+    } else {
+        // Fallback: desenha o jogador com formas geométricas se a imagem não foi carregada
+        draw_player_voxel(x, y, COLOR_PLAYER);
+    }
 }
 
 static void draw_car_voxel(int x, int y, Color color) {
-    DrawRectangle(x + 1, y + 12, CELL_SIZE - 2, CELL_SIZE - 8, color);
-    DrawRectangle(x + 3, y + 6, CELL_SIZE - 6, CELL_SIZE - 12, WHITE);
-    DrawRectangle(x + 2, y + 14, 4, 3, YELLOW);
-    DrawRectangle(x + CELL_SIZE - 6, y + 14, 4, 3, YELLOW);
-    DrawRectangle(x + 4, y + 8, CELL_SIZE - 8, 4, (Color){200, 200, 255, 255});
+    // Se a textura foi carregada, usa a imagem PNG
+    if (car_texture.id != 0) {
+        DrawTexturePro(
+            car_texture,
+            (Rectangle){0, 0, (float)car_texture.width, (float)car_texture.height},
+            (Rectangle){(float)x, (float)y, (float)CELL_SIZE, (float)CELL_SIZE},
+            (Vector2){0, 0},
+            0.0f,
+            WHITE
+        );
+    } else {
+        // Fallback: desenha o carro com formas geométricas se a imagem não foi carregada
+        DrawRectangle(x + 1, y + 12, CELL_SIZE - 2, CELL_SIZE - 8, color);
+        DrawRectangle(x + 3, y + 6, CELL_SIZE - 6, CELL_SIZE - 12, WHITE);
+        DrawRectangle(x + 2, y + 14, 4, 3, YELLOW);
+        DrawRectangle(x + CELL_SIZE - 6, y + 14, 4, 3, YELLOW);
+        DrawRectangle(x + 4, y + 8, CELL_SIZE - 8, 4, (Color){200, 200, 255, 255});
+    }
 }
 
 static void draw_log_voxel(int x, int y) {
-    DrawRectangle(x + 2, y + 8, CELL_SIZE - 4, CELL_SIZE - 8, COLOR_LOG);
-    DrawRectangle(x + 4, y + 10, CELL_SIZE - 8, 2, (Color){101, 67, 33, 255});
-    DrawRectangle(x + 4, y + 14, CELL_SIZE - 8, 2, (Color){101, 67, 33, 255});
-    DrawRectangle(x + 4, y + 18, CELL_SIZE - 8, 2, (Color){101, 67, 33, 255});
+    // Se a textura foi carregada, usa a imagem PNG
+    if (log_texture.id != 0) {
+        DrawTexturePro(
+            log_texture,
+            (Rectangle){0, 0, (float)log_texture.width, (float)log_texture.height},
+            (Rectangle){(float)x, (float)y, (float)CELL_SIZE, (float)CELL_SIZE},
+            (Vector2){0, 0},
+            0.0f,
+            WHITE
+        );
+    } else {
+        // Fallback: desenha o tronco com formas geométricas se a imagem não foi carregada
+        DrawRectangle(x + 2, y + 8, CELL_SIZE - 4, CELL_SIZE - 8, COLOR_LOG);
+        DrawRectangle(x + 4, y + 10, CELL_SIZE - 8, 2, (Color){101, 67, 33, 255});
+        DrawRectangle(x + 4, y + 14, CELL_SIZE - 8, 2, (Color){101, 67, 33, 255});
+        DrawRectangle(x + 4, y + 18, CELL_SIZE - 8, 2, (Color){101, 67, 33, 255});
+    }
 }
 
 // ----- Render de linhas e jogo -----
@@ -114,9 +161,22 @@ static void render_row(const Row *row, int y, int player_x, int player_y) {
             if (cell == CHAR_CAR)      draw_car_voxel(cell_x, start_y, COLOR_CAR);
             else if (cell == CHAR_LOG) draw_log_voxel(cell_x, start_y);
             else if (cell == CHAR_LIFE) {
-                // Desenha poder de vida (coração ou símbolo +)
-                DrawCircle(cell_x + CELL_SIZE/2, start_y + CELL_SIZE/2, CELL_SIZE/3, RED);
-                DrawText("+", cell_x + CELL_SIZE/2 - 5, start_y + CELL_SIZE/2 - 8, 16, WHITE);
+                // Desenha poder de vida (coração)
+                if (heart_texture.id != 0) {
+                    // Usa o sprite do coração se disponível
+                    DrawTexturePro(
+                        heart_texture,
+                        (Rectangle){0, 0, (float)heart_texture.width, (float)heart_texture.height},
+                        (Rectangle){(float)cell_x, (float)start_y, (float)CELL_SIZE, (float)CELL_SIZE},
+                        (Vector2){0, 0},
+                        0.0f,
+                        WHITE
+                    );
+                } else {
+                    // Fallback: desenha coração com formas geométricas
+                    DrawCircle(cell_x + CELL_SIZE/2, start_y + CELL_SIZE/2, CELL_SIZE/3, RED);
+                    DrawText("+", cell_x + CELL_SIZE/2 - 5, start_y + CELL_SIZE/2 - 8, 16, WHITE);
+                }
             }
         }
     }
@@ -244,9 +304,22 @@ static void render_row_two(const Row *row, int y, int p1_x, int p1_y, int p2_x, 
             if (cell == CHAR_CAR)      draw_car_voxel(cell_x, start_y, COLOR_CAR);
             else if (cell == CHAR_LOG) draw_log_voxel(cell_x, start_y);
             else if (cell == CHAR_LIFE) {
-                // Desenha poder de vida (coração ou símbolo +)
-                DrawCircle(cell_x + CELL_SIZE/2, start_y + CELL_SIZE/2, CELL_SIZE/3, RED);
-                DrawText("+", cell_x + CELL_SIZE/2 - 5, start_y + CELL_SIZE/2 - 8, 16, WHITE);
+                // Desenha poder de vida (coração)
+                if (heart_texture.id != 0) {
+                    // Usa o sprite do coração se disponível
+                    DrawTexturePro(
+                        heart_texture,
+                        (Rectangle){0, 0, (float)heart_texture.width, (float)heart_texture.height},
+                        (Rectangle){(float)cell_x, (float)start_y, (float)CELL_SIZE, (float)CELL_SIZE},
+                        (Vector2){0, 0},
+                        0.0f,
+                        WHITE
+                    );
+                } else {
+                    // Fallback: desenha coração com formas geométricas
+                    DrawCircle(cell_x + CELL_SIZE/2, start_y + CELL_SIZE/2, CELL_SIZE/3, RED);
+                    DrawText("+", cell_x + CELL_SIZE/2 - 5, start_y + CELL_SIZE/2 - 8, 16, WHITE);
+                }
             }
         }
     }
@@ -415,6 +488,63 @@ void raylib_run_game(Ranking *ranking) {
     SetConfigFlags(FLAG_VSYNC_HINT | FLAG_FULLSCREEN_MODE);
     InitWindow(0, 0, "Nova (Velha) Infancia - Crossy Road");
     SetTargetFPS(60);
+
+    // === CARREGAMENTO DE SPRITES ===
+    // Carrega as imagens da pasta sprites/
+    const char* sprite_paths[] = {
+        "sprites/car.png",
+        "sprites/log (1).png",
+        "sprites/bird.png",
+        "sprites/coracao.png"
+    };
+    
+    // Carrega sprite do carro
+    if (FileExists(sprite_paths[0])) {
+        car_texture = LoadTexture(sprite_paths[0]);
+        if (car_texture.id != 0) {
+            TraceLog(LOG_INFO, "Sprite do carro carregado: %s", sprite_paths[0]);
+        } else {
+            TraceLog(LOG_WARNING, "Erro ao carregar sprite do carro");
+        }
+    } else {
+        TraceLog(LOG_WARNING, "Arquivo não encontrado: %s", sprite_paths[0]);
+    }
+    
+    // Carrega sprite do tronco
+    if (FileExists(sprite_paths[1])) {
+        log_texture = LoadTexture(sprite_paths[1]);
+        if (log_texture.id != 0) {
+            TraceLog(LOG_INFO, "Sprite do tronco carregado: %s", sprite_paths[1]);
+        } else {
+            TraceLog(LOG_WARNING, "Erro ao carregar sprite do tronco");
+        }
+    } else {
+        TraceLog(LOG_WARNING, "Arquivo não encontrado: %s", sprite_paths[1]);
+    }
+    
+    // Carrega sprite do pássaro (jogador no modo 1 jogador)
+    if (FileExists(sprite_paths[2])) {
+        bird_texture = LoadTexture(sprite_paths[2]);
+        if (bird_texture.id != 0) {
+            TraceLog(LOG_INFO, "Sprite do pássaro carregado: %s", sprite_paths[2]);
+        } else {
+            TraceLog(LOG_WARNING, "Erro ao carregar sprite do pássaro");
+        }
+    } else {
+        TraceLog(LOG_WARNING, "Arquivo não encontrado: %s", sprite_paths[2]);
+    }
+    
+    // Carrega sprite do coração (poder de vida)
+    if (FileExists(sprite_paths[3])) {
+        heart_texture = LoadTexture(sprite_paths[3]);
+        if (heart_texture.id != 0) {
+            TraceLog(LOG_INFO, "Sprite do coração carregado: %s", sprite_paths[3]);
+        } else {
+            TraceLog(LOG_WARNING, "Erro ao carregar sprite do coração");
+        }
+    } else {
+        TraceLog(LOG_WARNING, "Arquivo não encontrado: %s", sprite_paths[3]);
+    }
 
     // Alvo de renderização virtual 800x600
     const int VIRTUAL_W = SCREEN_WIDTH, VIRTUAL_H = SCREEN_HEIGHT;
@@ -642,6 +772,25 @@ void raylib_run_game(Ranking *ranking) {
         );
 
         EndDrawing();
+    }
+
+    // === DESCARREGAMENTO DE SPRITES ===
+    // Descarrega as texturas para liberar memória
+    if (car_texture.id != 0) {
+        UnloadTexture(car_texture);
+        car_texture = (Texture2D){0};
+    }
+    if (log_texture.id != 0) {
+        UnloadTexture(log_texture);
+        log_texture = (Texture2D){0};
+    }
+    if (bird_texture.id != 0) {
+        UnloadTexture(bird_texture);
+        bird_texture = (Texture2D){0};
+    }
+    if (heart_texture.id != 0) {
+        UnloadTexture(heart_texture);
+        heart_texture = (Texture2D){0};
     }
 
     UnloadRenderTexture(target);
