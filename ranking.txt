@@ -1,3 +1,4 @@
+edwfedgb;86
 qwdfedgrthjy;74
 pedro;64
 wsaddfbg;49
@@ -29,6 +30,7 @@ pedro;22
 pedro;22
 pedro;22
 wdsfnm,n;22
+dsfvf;21
 pdro;21
 pedro;21
 pedro;21
@@ -36,6 +38,7 @@ brule;20
 burle;20
 wderfgnh;20
 pedro;19
+sadcvfg;19
 caiocaio;18
 pedro;18
 rank2.0000;18
@@ -58,11 +61,13 @@ pedro;9
 pedro;9
 pedro;9
 pedro;9
+wqsdefd;9
 ];8
 caio;8
 caio;8
 ee;8
 iwdjaj;8
+khujhn;8
 kjkjkj;8
 pedro;8
 pedrop;8
@@ -108,11 +113,13 @@ pedro;4
 pedro;4
 pedro;4
 pedro;4
+qsadfvfb;4
 burle;3
 caio;3
 caio;3
 caio;3
 e;3
+mnjn;3
 oi;3
 pedro;3
 pedro;3
@@ -122,6 +129,7 @@ pedro;3
 pedro;3
 pedro;3
 rr;3
+sfds;3
 caio;2
 e;2
 e;2
@@ -135,6 +143,7 @@ pedro;2
 pedro;2
 pedro;2
 rdg;2
+sdfvbv;2
 teste1;2
 um];2
 wdefrgthgnh;2
@@ -146,6 +155,7 @@ caio;1
 caio;1
 caio;1
 dldld;1
+knjn;1
 pedro;1
 pedro;1
 pedro;1
@@ -153,6 +163,7 @@ pedro;1
 pedro;1
 pedro;1
 pedrop;1
+sx;1
 ww;1
 fff;0
 oi;0

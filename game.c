@@ -164,31 +164,33 @@ static void row_destroy(Row *row)
 }
 
 /* -------------------------------------------------------
-   ÁREA SEGURA (DINÂMICA)
-   - início: 3 linhas seguras
-   - depois: 1 linha (só o rodapé)
+   ÁREA SEGURA (APENAS NO INÍCIO)
+   - início: 3 linhas seguras (apenas nas primeiras 20 linhas)
+   - depois: NENHUMA área segura - mapa desce normalmente
  ------------------------------------------------------- */
 static void ensure_safe_area(GameState *state)
 {
     if (!state) return;
 
-    int safe_lines = (state->world_position < 20) ? 3 : 1;
-
-    for (int y = MAP_HEIGHT - safe_lines; y < MAP_HEIGHT; ++y) {
-        if (state->rows[y].type != ROW_GRASS) {
-            row_destroy(&state->rows[y]);
-            state->rows[y].type = ROW_GRASS;
-            state->rows[y].queue = queue_create(MAP_WIDTH);
-            state->rows[y].direction = 0;
-            state->rows[y].speed_ticks = 0;
-            state->rows[y].tick_counter = 0;
-            state->rows[y].moved_this_tick = 0;
-            queue_fill_pattern(state->rows[y].queue, ' ', 1, ' ', 1);
+    // Área segura apenas no início do jogo (primeiras 20 linhas)
+    if (state->world_position < 20) {
+        int safe_lines = 3;
+        
+        // Força grama nas últimas 3 linhas apenas no início
+        for (int y = MAP_HEIGHT - safe_lines; y < MAP_HEIGHT; ++y) {
+            if (state->rows[y].type != ROW_GRASS) {
+                row_destroy(&state->rows[y]);
+                state->rows[y].type = ROW_GRASS;
+                state->rows[y].queue = queue_create(MAP_WIDTH);
+                state->rows[y].direction = 0;
+                state->rows[y].speed_ticks = 0;
+                state->rows[y].tick_counter = 0;
+                state->rows[y].moved_this_tick = 0;
+                queue_fill_pattern(state->rows[y].queue, ' ', 1, ' ', 1);
+            }
         }
-    }
 
-    // Evita rio em cima de rio no começo (depois libera)
-    if (state->world_position < 30) {
+        // Evita rio em cima de rio no começo (depois libera)
         for (int y = 0; y < MAP_HEIGHT - 1; ++y) {
             if (state->rows[y].type == ROW_RIVER && state->rows[y + 1].type == ROW_RIVER) {
                 row_destroy(&state->rows[y + 1]);
@@ -202,6 +204,7 @@ static void ensure_safe_area(GameState *state)
             }
         }
     }
+    // Depois das primeiras 20 linhas: NÃO faz nada - mapa desce normalmente
 }
 
 /* -------------------------------------------------------

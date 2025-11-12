@@ -50,6 +50,10 @@ static Texture2D log_texture = {0};
 static Texture2D bird_texture = {0};  // Sprite do pássaro (jogador no modo 1 jogador)
 static Texture2D heart_texture = {0}; // Sprite do coração (poder de vida)
 static Texture2D rabbit_texture = {0}; // Sprite do coelho (jogador 2 no modo 2 jogadores)
+static Texture2D menu_texture = {0};  // Imagem de fundo do menu
+static Texture2D grass_texture = {0}; // Textura do gramado
+static Texture2D river_texture = {0}; // Textura do rio
+static Texture2D road_texture = {0};  // Textura da estrada/rua
 
 // ----- Desenho voxel -----
 /**
@@ -146,11 +150,55 @@ static void render_row(const Row *row, int y, int player_x, int player_y) {
         case ROW_RIVER: bg_color = COLOR_RIVER; break;
     }
 
-    DrawRectangle(start_x, start_y, MAP_WIDTH * CELL_SIZE, CELL_SIZE, bg_color);
-
-    if (row->type == ROW_ROAD) {
-        for (int x = 0; x < MAP_WIDTH * CELL_SIZE; x += CELL_SIZE * 2) {
-            DrawRectangle(start_x + x, start_y + CELL_SIZE/2 - 1, CELL_SIZE, 2, WHITE);
+    // Desenha o fundo da linha
+    if (row->type == ROW_GRASS && grass_texture.id != 0) {
+        // Usa a textura do gramado se disponível
+        // Desenha a textura repetida para cobrir toda a largura da linha
+        for (int x = 0; x < MAP_WIDTH * CELL_SIZE; x += CELL_SIZE) {
+            DrawTexturePro(
+                grass_texture,
+                (Rectangle){0, 0, (float)grass_texture.width, (float)grass_texture.height},
+                (Rectangle){(float)(start_x + x), (float)start_y, (float)CELL_SIZE, (float)CELL_SIZE},
+                (Vector2){0, 0},
+                0.0f,
+                WHITE
+            );
+        }
+    } else if (row->type == ROW_ROAD && road_texture.id != 0) {
+        // Usa a textura da estrada se disponível
+        // Desenha a textura repetida para cobrir toda a largura da linha
+        for (int x = 0; x < MAP_WIDTH * CELL_SIZE; x += CELL_SIZE) {
+            DrawTexturePro(
+                road_texture,
+                (Rectangle){0, 0, (float)road_texture.width, (float)road_texture.height},
+                (Rectangle){(float)(start_x + x), (float)start_y, (float)CELL_SIZE, (float)CELL_SIZE},
+                (Vector2){0, 0},
+                0.0f,
+                WHITE
+            );
+        }
+    } else if (row->type == ROW_RIVER && river_texture.id != 0) {
+        // Usa a textura do rio se disponível
+        // Desenha a textura repetida para cobrir toda a largura da linha
+        for (int x = 0; x < MAP_WIDTH * CELL_SIZE; x += CELL_SIZE) {
+            DrawTexturePro(
+                river_texture,
+                (Rectangle){0, 0, (float)river_texture.width, (float)river_texture.height},
+                (Rectangle){(float)(start_x + x), (float)start_y, (float)CELL_SIZE, (float)CELL_SIZE},
+                (Vector2){0, 0},
+                0.0f,
+                WHITE
+            );
+        }
+    } else {
+        // Fallback: usa cor sólida se a textura não foi carregada
+        DrawRectangle(start_x, start_y, MAP_WIDTH * CELL_SIZE, CELL_SIZE, bg_color);
+        
+        // Desenha linhas da estrada (faixas brancas) apenas se não usar textura
+        if (row->type == ROW_ROAD && road_texture.id == 0) {
+            for (int x = 0; x < MAP_WIDTH * CELL_SIZE; x += CELL_SIZE * 2) {
+                DrawRectangle(start_x + x, start_y + CELL_SIZE/2 - 1, CELL_SIZE, 2, WHITE);
+            }
         }
     }
 
@@ -286,13 +334,55 @@ static void render_row_two(const Row *row, int y, int p1_x, int p1_y, int p2_x, 
         case ROW_RIVER: bg_color = COLOR_RIVER; break;
     }
 
-    // Desenha fundo da linha
-    DrawRectangle(start_x, start_y, MAP_WIDTH * CELL_SIZE, CELL_SIZE, bg_color);
-
-    // Desenha linhas da estrada (faixas brancas)
-    if (row->type == ROW_ROAD) {
-        for (int x = 0; x < MAP_WIDTH * CELL_SIZE; x += CELL_SIZE * 2) {
-            DrawRectangle(start_x + x, start_y + CELL_SIZE/2 - 1, CELL_SIZE, 2, WHITE);
+    // Desenha o fundo da linha
+    if (row->type == ROW_GRASS && grass_texture.id != 0) {
+        // Usa a textura do gramado se disponível
+        // Desenha a textura repetida para cobrir toda a largura da linha
+        for (int x = 0; x < MAP_WIDTH * CELL_SIZE; x += CELL_SIZE) {
+            DrawTexturePro(
+                grass_texture,
+                (Rectangle){0, 0, (float)grass_texture.width, (float)grass_texture.height},
+                (Rectangle){(float)(start_x + x), (float)start_y, (float)CELL_SIZE, (float)CELL_SIZE},
+                (Vector2){0, 0},
+                0.0f,
+                WHITE
+            );
+        }
+    } else if (row->type == ROW_ROAD && road_texture.id != 0) {
+        // Usa a textura da estrada se disponível
+        // Desenha a textura repetida para cobrir toda a largura da linha
+        for (int x = 0; x < MAP_WIDTH * CELL_SIZE; x += CELL_SIZE) {
+            DrawTexturePro(
+                road_texture,
+                (Rectangle){0, 0, (float)road_texture.width, (float)road_texture.height},
+                (Rectangle){(float)(start_x + x), (float)start_y, (float)CELL_SIZE, (float)CELL_SIZE},
+                (Vector2){0, 0},
+                0.0f,
+                WHITE
+            );
+        }
+    } else if (row->type == ROW_RIVER && river_texture.id != 0) {
+        // Usa a textura do rio se disponível
+        // Desenha a textura repetida para cobrir toda a largura da linha
+        for (int x = 0; x < MAP_WIDTH * CELL_SIZE; x += CELL_SIZE) {
+            DrawTexturePro(
+                river_texture,
+                (Rectangle){0, 0, (float)river_texture.width, (float)river_texture.height},
+                (Rectangle){(float)(start_x + x), (float)start_y, (float)CELL_SIZE, (float)CELL_SIZE},
+                (Vector2){0, 0},
+                0.0f,
+                WHITE
+            );
+        }
+    } else {
+        // Fallback: usa cor sólida se a textura não foi carregada
+        DrawRectangle(start_x, start_y, MAP_WIDTH * CELL_SIZE, CELL_SIZE, bg_color);
+        
+        // Desenha linhas da estrada (faixas brancas) apenas se não usar textura
+        if (row->type == ROW_ROAD && road_texture.id == 0) {
+            for (int x = 0; x < MAP_WIDTH * CELL_SIZE; x += CELL_SIZE * 2) {
+                DrawRectangle(start_x + x, start_y + CELL_SIZE/2 - 1, CELL_SIZE, 2, WHITE);
+            }
         }
     }
 
@@ -414,16 +504,32 @@ static void render_game_two(const GameState *state) {
 // ----- Telas -----
 static void render_menu_screen(int menu_index, const char** options, int count)
 {
-    ClearBackground(BLACK);
+    // Desenha a imagem de fundo do menu se disponível
+    if (menu_texture.id != 0) {
+        // Desenha a imagem de fundo cobrindo toda a tela
+        DrawTexturePro(
+            menu_texture,
+            (Rectangle){0, 0, (float)menu_texture.width, (float)menu_texture.height},
+            (Rectangle){0, 0, (float)SCREEN_WIDTH, (float)SCREEN_HEIGHT},
+            (Vector2){0, 0},
+            0.0f,
+            WHITE
+        );
+    } else {
+        // Fallback: fundo preto se a imagem não foi carregada
+        ClearBackground(BLACK);
+    }
 
-    DrawText("Nova(Velha) InfancIA", SCREEN_WIDTH/2 - 220, 120, 40, YELLOW);
-    DrawText("Crossy Road",           SCREEN_WIDTH/2 - 100, 170, 30, WHITE);
+    // Desenha os textos do menu por cima da imagem
+    DrawText("Nova(Velha) InfancIA", SCREEN_WIDTH/2 - 220, 120, 40, BLACK);
+    DrawText("Crossy Road",           SCREEN_WIDTH/2 - 100, 170, 30, BLACK);
     DrawText("Use as setas UP/DOWN para navegar e ENTER para selecionar",
-             SCREEN_WIDTH/2 - 280, 220, 18, GRAY);
+             SCREEN_WIDTH/2 - 280, 220, 18, BLACK);
 
     int base_y = 270;
     for (int i = 0; i < count; ++i) {
-        Color c = (i == menu_index) ? YELLOW : WHITE;
+        // Texto selecionado: amarelo, texto normal: preto (para contraste)
+        Color c = (i == menu_index) ? YELLOW : BLACK;
         if (i == menu_index) DrawText(">", SCREEN_WIDTH/2 - 140, base_y + i*40, 26, c);
         DrawText(options[i],  SCREEN_WIDTH/2 - 110, base_y + i*40, 26, c);
     }
@@ -584,6 +690,54 @@ void raylib_run_game(Ranking *ranking) {
         }
     } else {
         TraceLog(LOG_WARNING, "Arquivo não encontrado: %s", sprite_paths[4]);
+    }
+    
+    // Carrega imagem de fundo do menu
+    if (FileExists("sprites/MenuCrossy.png")) {
+        menu_texture = LoadTexture("sprites/MenuCrossy.png");
+        if (menu_texture.id != 0) {
+            TraceLog(LOG_INFO, "Imagem do menu carregada: sprites/MenuCrossy.png");
+        } else {
+            TraceLog(LOG_WARNING, "Erro ao carregar imagem do menu");
+        }
+    } else {
+        TraceLog(LOG_WARNING, "Arquivo não encontrado: sprites/MenuCrossy.png");
+    }
+    
+    // Carrega textura do gramado
+    if (FileExists("sprites/grama.png")) {
+        grass_texture = LoadTexture("sprites/grama.png");
+        if (grass_texture.id != 0) {
+            TraceLog(LOG_INFO, "Textura do gramado carregada: sprites/grama.png");
+        } else {
+            TraceLog(LOG_WARNING, "Erro ao carregar textura do gramado");
+        }
+    } else {
+        TraceLog(LOG_WARNING, "Arquivo não encontrado: sprites/grama.png");
+    }
+    
+    // Carrega textura do rio
+    if (FileExists("sprites/rio.png")) {
+        river_texture = LoadTexture("sprites/rio.png");
+        if (river_texture.id != 0) {
+            TraceLog(LOG_INFO, "Textura do rio carregada: sprites/rio.png");
+        } else {
+            TraceLog(LOG_WARNING, "Erro ao carregar textura do rio");
+        }
+    } else {
+        TraceLog(LOG_WARNING, "Arquivo não encontrado: sprites/rio.png");
+    }
+    
+    // Carrega textura da estrada/rua
+    if (FileExists("sprites/rua.png")) {
+        road_texture = LoadTexture("sprites/rua.png");
+        if (road_texture.id != 0) {
+            TraceLog(LOG_INFO, "Textura da estrada carregada: sprites/rua.png");
+        } else {
+            TraceLog(LOG_WARNING, "Erro ao carregar textura da estrada");
+        }
+    } else {
+        TraceLog(LOG_WARNING, "Arquivo não encontrado: sprites/rua.png");
     }
 
     // Alvo de renderização virtual 800x600
@@ -835,6 +989,22 @@ void raylib_run_game(Ranking *ranking) {
     if (rabbit_texture.id != 0) {
         UnloadTexture(rabbit_texture);
         rabbit_texture = (Texture2D){0};
+    }
+    if (menu_texture.id != 0) {
+        UnloadTexture(menu_texture);
+        menu_texture = (Texture2D){0};
+    }
+    if (grass_texture.id != 0) {
+        UnloadTexture(grass_texture);
+        grass_texture = (Texture2D){0};
+    }
+    if (river_texture.id != 0) {
+        UnloadTexture(river_texture);
+        river_texture = (Texture2D){0};
+    }
+    if (road_texture.id != 0) {
+        UnloadTexture(road_texture);
+        road_texture = (Texture2D){0};
     }
 
     UnloadRenderTexture(target);
