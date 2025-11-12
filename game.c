@@ -126,8 +126,8 @@ static void generate_row(Row *row, int world_position, GameState *state)
 
     create_obstacles(row->queue, type);
     
-    // Sistema de vidas: gera poder de vida a cada 25 linhas em linhas de grama (apenas modo 1 jogador)
-    if (state && !state->two_players && type == ROW_GRASS && world_position > 0 && 
+    // Sistema de vidas: gera poder de vida a cada 25 linhas (apenas modo 1 jogador)
+    if (state && !state->two_players && world_position > 0 && 
         world_position % 25 == 0 && world_position != state->life_power_spawned) {
         // Verifica se já existe um poder de vida no mapa
         int has_life_power = 0;
@@ -289,9 +289,6 @@ static void ensure_safe_area(GameState *state)
     // --- FLAG DE RESPIRO ---
     state->just_scrolled = 1;       // evita empurrão do rio neste frame
 }
-
-
- 
 
 /* -------------------------------------------------------
    INIT / RESET
@@ -927,4 +924,3 @@ int game_get_player_score(const GameState *state, int player_id)
     // Modo 1P: retorna pontuação do player principal
     return state->score;
 }
-//////

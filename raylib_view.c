@@ -18,17 +18,11 @@ static void render_ranking_screen(const Ranking *ranking);
 #define MARGIN 50
 #define RANKING_FILE "ranking.txt"
 
-// Cores no estilo voxel/Crossy Road
+// Cores usadas como fallback para fundos quando texturas não carregam
 #define COLOR_GRASS (Color){76, 175, 80, 255}
 #define COLOR_ROAD  (Color){97, 97, 97, 255}
 #define COLOR_RIVER (Color){33, 150, 243, 255}
-#define COLOR_CAR   (Color){244, 67, 54, 255}
-#define COLOR_LOG   (Color){121, 85, 72, 255}
-#define COLOR_PLAYER (Color){255, 193, 7, 255}
-#define COLOR_TREE (Color){76, 175, 80, 255}
-#define COLOR_TREE_TRUNK (Color){121, 85, 72, 255}
-// === 2 PLAYER MODE ===
-// Cores dos jogadores para diferenciá-los visualmente
+// Cores dos jogadores para textos e UI
 #define COLOR_PLAYER1 (Color){255, 193, 7, 255}    // Amarelo - Jogador 1 (P1)
 #define COLOR_PLAYER2 (Color){0, 200, 255, 255}    // Ciano - Jogador 2 (P2)
 
@@ -55,33 +49,12 @@ static Texture2D grass_texture = {0}; // Textura do gramado
 static Texture2D river_texture = {0}; // Textura do rio
 static Texture2D road_texture = {0};  // Textura da estrada/rua
 
-// ----- Desenho voxel -----
+// ----- Funções de desenho de sprites -----
 /**
- * Desenha um jogador no estilo voxel com cor customizável
- * === 2 PLAYER MODE === Versão atualizada para suportar cores diferentes
- * @param x Posição X em pixels
- * @param y Posição Y em pixels
- * @param player_color Cor do jogador (amarelo para P1, ciano para P2)
- */
-static void draw_player_voxel(int x, int y, Color player_color) {
-    // Corpo principal (bloco maior)
-    DrawRectangle(x + 2, y + 8, CELL_SIZE - 4, CELL_SIZE - 8, player_color);
-    // Cabeça (bloco menor no topo)
-    DrawRectangle(x + 4, y + 2, CELL_SIZE - 8, CELL_SIZE - 12, player_color);
-    // Olhos (dois pequenos quadrados pretos)
-    DrawRectangle(x + 6, y + 4, 3, 3, BLACK);
-    DrawRectangle(x + 15, y + 4, 3, 3, BLACK);
-    // Crista (pequeno retângulo vermelho no topo)
-    DrawRectangle(x + 8, y, CELL_SIZE - 16, 4, RED);
-}
-
-/**
- * Função de compatibilidade: mantém função original usando cor padrão
- * Usada no modo 1 jogador para manter compatibilidade
- * Agora usa o sprite do pássaro se disponível
+ * Desenha o jogador no modo 1 jogador (sprite do pássaro)
  */
 static void draw_player_voxel_old(int x, int y) {
-    // Se a textura do pássaro foi carregada, usa a imagem PNG
+    // Desenha o sprite do pássaro
     if (bird_texture.id != 0) {
         DrawTexturePro(
             bird_texture,
@@ -91,14 +64,11 @@ static void draw_player_voxel_old(int x, int y) {
             0.0f,
             WHITE
         );
-    } else {
-        // Fallback: desenha o jogador com formas geométricas se a imagem não foi carregada
-        draw_player_voxel(x, y, COLOR_PLAYER);
     }
 }
 
-static void draw_car_voxel(int x, int y, Color color) {
-    // Se a textura foi carregada, usa a imagem PNG
+static void draw_car_voxel(int x, int y) {
+    // Desenha o sprite do carro
     if (car_texture.id != 0) {
         DrawTexturePro(
             car_texture,
@@ -108,18 +78,11 @@ static void draw_car_voxel(int x, int y, Color color) {
             0.0f,
             WHITE
         );
-    } else {
-        // Fallback: desenha o carro com formas geométricas se a imagem não foi carregada
-        DrawRectangle(x + 1, y + 12, CELL_SIZE - 2, CELL_SIZE - 8, color);
-        DrawRectangle(x + 3, y + 6, CELL_SIZE - 6, CELL_SIZE - 12, WHITE);
-        DrawRectangle(x + 2, y + 14, 4, 3, YELLOW);
-        DrawRectangle(x + CELL_SIZE - 6, y + 14, 4, 3, YELLOW);
-        DrawRectangle(x + 4, y + 8, CELL_SIZE - 8, 4, (Color){200, 200, 255, 255});
     }
 }
 
 static void draw_log_voxel(int x, int y) {
-    // Se a textura foi carregada, usa a imagem PNG
+    // Desenha o sprite do tronco
     if (log_texture.id != 0) {
         DrawTexturePro(
             log_texture,
@@ -129,12 +92,6 @@ static void draw_log_voxel(int x, int y) {
             0.0f,
             WHITE
         );
-    } else {
-        // Fallback: desenha o tronco com formas geométricas se a imagem não foi carregada
-        DrawRectangle(x + 2, y + 8, CELL_SIZE - 4, CELL_SIZE - 8, COLOR_LOG);
-        DrawRectangle(x + 4, y + 10, CELL_SIZE - 8, 2, (Color){101, 67, 33, 255});
-        DrawRectangle(x + 4, y + 14, CELL_SIZE - 8, 2, (Color){101, 67, 33, 255});
-        DrawRectangle(x + 4, y + 18, CELL_SIZE - 8, 2, (Color){101, 67, 33, 255});
     }
 }
 
@@ -207,7 +164,7 @@ static void render_row(const Row *row, int y, int player_x, int player_y) {
             char cell = queue_get_cell(row->queue, x);
             int cell_x = start_x + x * CELL_SIZE;
 
-            if (cell == CHAR_CAR)      draw_car_voxel(cell_x, start_y, COLOR_CAR);
+            if (cell == CHAR_CAR)      draw_car_voxel(cell_x, start_y);
             else if (cell == CHAR_LOG) draw_log_voxel(cell_x, start_y);
             else if (cell == CHAR_LIFE) {
                 // Desenha poder de vida (coração)
@@ -392,7 +349,7 @@ static void render_row_two(const Row *row, int y, int p1_x, int p1_y, int p2_x, 
             char cell = queue_get_cell(row->queue, x);
             int cell_x = start_x + x * CELL_SIZE;
 
-            if (cell == CHAR_CAR)      draw_car_voxel(cell_x, start_y, COLOR_CAR);
+            if (cell == CHAR_CAR)      draw_car_voxel(cell_x, start_y);
             else if (cell == CHAR_LOG) draw_log_voxel(cell_x, start_y);
             else if (cell == CHAR_LIFE) {
                 // Desenha poder de vida (coração)
@@ -418,7 +375,6 @@ static void render_row_two(const Row *row, int y, int p1_x, int p1_y, int p2_x, 
     // Desenha P1 se estiver nesta linha e vivo (sprite do pássaro)
     if (p1_y == y && p1_alive) {
         int p1_x_pos = start_x + p1_x * CELL_SIZE;
-        // Se a textura do pássaro foi carregada, usa a imagem PNG
         if (bird_texture.id != 0) {
             DrawTexturePro(
                 bird_texture,
@@ -428,16 +384,12 @@ static void render_row_two(const Row *row, int y, int p1_x, int p1_y, int p2_x, 
                 0.0f,
                 WHITE
             );
-        } else {
-            // Fallback: desenha o jogador com formas geométricas se a imagem não foi carregada
-            draw_player_voxel(p1_x_pos, start_y, COLOR_PLAYER1);
         }
     }
     
     // Desenha P2 se estiver nesta linha e vivo (sprite do coelho)
     if (p2_y == y && p2_alive) {
         int p2_x_pos = start_x + p2_x * CELL_SIZE;
-        // Se a textura do coelho foi carregada, usa a imagem PNG
         if (rabbit_texture.id != 0) {
             DrawTexturePro(
                 rabbit_texture,
@@ -447,9 +399,6 @@ static void render_row_two(const Row *row, int y, int p1_x, int p1_y, int p2_x, 
                 0.0f,
                 WHITE
             );
-        } else {
-            // Fallback: desenha o jogador com formas geométricas se a imagem não foi carregada
-            draw_player_voxel(p2_x_pos, start_y, COLOR_PLAYER2);
         }
     }
 }

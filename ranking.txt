@@ -18,6 +18,7 @@ sdfg;27
 pedro;26
 pedro;26
 pedro;25
+ rfdvf;24
 pedro;24
 testelista;24
 caio;23
@@ -53,6 +54,7 @@ pedro;11
 caio;10
 caio;10
 caio;10
+feg;10
 j;10
 pedor;10
 pedro;10
@@ -75,6 +77,7 @@ testesteste;8
 caio;7
 caio;7
 caio;7
+ewdfrge;7
 ff;7
 lucas;7
 oedro;7
@@ -130,6 +133,7 @@ pedro;3
 pedro;3
 rr;3
 sfds;3
+wqerfgh;3
 caio;2
 e;2
 e;2
