@@ -2,6 +2,7 @@ edwfedgb;86
 qwdfedgrthjy;74
 pedro;64
 wsaddfbg;49
+fbgns;36
 pedro;35
 t5rgfb;35
 qwdefrfg;34
@@ -18,8 +19,8 @@ sdfg;27
 pedro;26
 pedro;26
 pedro;25
- rfdvf;24
 pedro;24
+rfdvf;24
 testelista;24
 caio;23
 lucas;23
@@ -31,6 +32,7 @@ pedro;22
 pedro;22
 pedro;22
 wdsfnm,n;22
+DFB ;21
 dsfvf;21
 pdro;21
 pedro;21
@@ -134,6 +136,7 @@ pedro;3
 rr;3
 sfds;3
 wqerfgh;3
+1qswd;2
 caio;2
 e;2
 e;2
@@ -147,6 +150,7 @@ pedro;2
 pedro;2
 pedro;2
 rdg;2
+sdf;2
 sdfvbv;2
 teste1;2
 um];2

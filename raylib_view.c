@@ -527,9 +527,13 @@ static void render_game_over_screen(const GameState *state, const char *player_n
         DrawText(TextFormat("Jogador: %s", player_name), SCREEN_WIDTH/2 - 80, SCREEN_HEIGHT/2 + 10, 20, GREEN);
     }
     
-    // Instruções para o jogador
-    DrawText("'R' para jogar de novo", SCREEN_WIDTH/2 - 100, SCREEN_HEIGHT/2 + 50, 20, GRAY);
-    DrawText("'M' para voltar ao menu", SCREEN_WIDTH/2 - 120, SCREEN_HEIGHT/2 + 80, 20, GRAY);
+    // Instruções para o jogador - centralizadas
+    const char *restart_text = "'R' para jogar de novo";
+    int restart_width = MeasureText(restart_text, 20);
+    DrawText(restart_text, SCREEN_WIDTH/2 - restart_width/2, SCREEN_HEIGHT/2 + 50, 20, GRAY);
+    const char *menu_text = "'M' para voltar ao menu";
+    int menu_width = MeasureText(menu_text, 20);
+    DrawText(menu_text, SCREEN_WIDTH/2 - menu_width/2, SCREEN_HEIGHT/2 + 80, 20, GRAY);
 }
 
 /**
@@ -542,26 +546,32 @@ static void render_game_over_screen(const GameState *state, const char *player_n
 static void render_name_input_screen(const char *buffer, int letterCount, const char *title) {
     ClearBackground((Color){30, 30, 30, 255});
     
-    // Título da tela (customizável para P1 ou P2)
-    DrawText(title ? title : "Digite seu nome:", SCREEN_WIDTH/2 - 130, SCREEN_HEIGHT/2 - 80, 30, WHITE);
+    // Título da tela (customizável para P1 ou P2) - centralizado
+    const char *title_text = title ? title : "Digite seu nome:";
+    int title_width = MeasureText(title_text, 30);
+    DrawText(title_text, SCREEN_WIDTH/2 - title_width/2, SCREEN_HEIGHT/2 - 80, 30, WHITE);
     
-    // Caixa de texto (fundo escuro)
+    // Caixa de texto (fundo escuro) - centralizada
     DrawRectangle(SCREEN_WIDTH/2 - 200, SCREEN_HEIGHT/2 - 30, 400, 50, (Color){60, 60, 60, 255});
     DrawRectangleLines(SCREEN_WIDTH/2 - 200, SCREEN_HEIGHT/2 - 30, 400, 50, WHITE);
     
-    // Texto digitado
-    DrawText(buffer, SCREEN_WIDTH/2 - 190, SCREEN_HEIGHT/2 - 15, 24, WHITE);
+    // Texto digitado - centralizado dentro da caixa
+    int buffer_width = MeasureText(buffer, 24);
+    DrawText(buffer, SCREEN_WIDTH/2 - buffer_width/2, SCREEN_HEIGHT/2 - 15, 24, WHITE);
 
-    // Cursor piscante (mostra posição de digitação)
+    // Cursor piscante (mostra posição de digitação) - centralizado
     if (((int)(GetTime() * 2)) % 2 == 0) {
-        int textWidth = MeasureText(buffer, 24);
-        DrawText("_", SCREEN_WIDTH/2 - 190 + textWidth, SCREEN_HEIGHT/2 - 15, 24, WHITE);
+        DrawText("_", SCREEN_WIDTH/2 - buffer_width/2 + buffer_width, SCREEN_HEIGHT/2 - 15, 24, WHITE);
     }
     
-    // Instruções
-    DrawText("Pressione ENTER para continuar", SCREEN_WIDTH/2 - 180, SCREEN_HEIGHT/2 + 50, 20, GRAY);
+    // Instruções - centralizadas
+    const char *instruction_text = "Pressione ENTER para continuar";
+    int instruction_width = MeasureText(instruction_text, 20);
+    DrawText(instruction_text, SCREEN_WIDTH/2 - instruction_width/2, SCREEN_HEIGHT/2 + 50, 20, GRAY);
     if (letterCount == 0) {
-        DrawText("(ou ESC para cancelar)", SCREEN_WIDTH/2 - 120, SCREEN_HEIGHT/2 + 80, 18, DARKGRAY);
+        const char *cancel_text = "(ou ESC para cancelar)";
+        int cancel_width = MeasureText(cancel_text, 18);
+        DrawText(cancel_text, SCREEN_WIDTH/2 - cancel_width/2, SCREEN_HEIGHT/2 + 80, 18, DARKGRAY);
     }
 }
 
@@ -976,14 +986,18 @@ static void render_help_screen(void)
     DrawText("- No rio, fique em cima dos troncos", x, y, 22, WHITE); y += lh;
     DrawText("- O mapa sobe automaticamente a cada intervalo de tempo", x, y, 22, WHITE); y += lh;
     DrawText("- Pontue ao alcançar linhas ainda não visitadas", x, y, 22, WHITE); y += lh + 10;
-    DrawText("'M' para voltar ao menu", x, y, 18, GRAY);
+    const char *menu_back_text = "'M' para voltar ao menu";
+    int menu_back_width = MeasureText(menu_back_text, 18);
+    DrawText(menu_back_text, SCREEN_WIDTH/2 - menu_back_width/2, y, 18, GRAY);
 }
 
 static void render_ranking_screen(const Ranking *ranking)
 {
     ClearBackground(BLACK);
     DrawText("Ranking", SCREEN_WIDTH/2 - 70, 80, 32, YELLOW);
-    DrawText("'M' para voltar ao menu", SCREEN_WIDTH/2 - 120, 120, 20, GRAY);
+    const char *menu_ranking_text = "'M' para voltar ao menu";
+    int menu_ranking_width = MeasureText(menu_ranking_text, 20);
+    DrawText(menu_ranking_text, SCREEN_WIDTH/2 - menu_ranking_width/2, 120, 20, GRAY);
 
     int x = SCREEN_WIDTH/2 - 200;
     int y = 170;
