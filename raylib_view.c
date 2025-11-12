@@ -225,7 +225,7 @@ static void render_game(const GameState *state) {
     } else {
         snprintf(vidas_text, sizeof(vidas_text), "Vidas: 0");
     }
-    DrawText(vidas_text, MARGIN, 35, 20, WHITE);
+    DrawText(vidas_text, MARGIN, 30, 20, WHITE);
     
     // Desenha corações para cada vida
     int heart_x = MARGIN + MeasureText(vidas_text, 20) + 10;
@@ -254,11 +254,11 @@ static void render_game(const GameState *state) {
         const Row *row = &state->rows[state->player_y];
         const char* row_type = (row->type == ROW_GRASS) ? "Grama" :
                                (row->type == ROW_ROAD)  ? "Rua"  : "Rio";
-        DrawText(TextFormat("Tipo da fileira: %s", row_type), MARGIN, 75, 14, GREEN);
+        DrawText(TextFormat("Tipo da fileira: %s", row_type), MARGIN, 55, 16, GREEN);
 
         if (row->type == ROW_RIVER && row->queue) {
             char cell = queue_get_cell(row->queue, state->player_x);
-            if (cell == CHAR_LOG) DrawText("Em cima do tronco - seguro!", MARGIN, 95, 16, GREEN);
+            if (cell == CHAR_LOG) DrawText("Em cima do tronco - seguro!", MARGIN, 75, 16, GREEN);
         }
     }
 }
@@ -394,20 +394,20 @@ static void render_game_two(const GameState *state) {
     // Pontuação do Jogador 1 (amarelo)
     DrawText(TextFormat("Pontuação do P1: %d", p1_score), MARGIN, 10, 20, COLOR_PLAYER1);
     // Pontuação do Jogador 2 (ciano)
-    DrawText(TextFormat("Pontuação do P2: %d", p2_score), MARGIN, 35, 20, COLOR_PLAYER2);
+    DrawText(TextFormat("Pontuação do P2: %d", p2_score), MARGIN, 30, 20, COLOR_PLAYER2);
     
     // Status de vida do Jogador 1
     if (p1_alive) {
-        DrawText("P1: Vivo", MARGIN, 85, 16, GREEN);
+        DrawText("P1: Vivo", MARGIN, 55, 16, GREEN);
     } else {
-        DrawText("P1: Morto", MARGIN, 85, 16, RED);
+        DrawText("P1: Morto", MARGIN, 55, 16, RED);
     }
     
     // Status de vida do Jogador 2
     if (p2_alive) {
-        DrawText("P2: Vivo", MARGIN, 105, 16, GREEN);
+        DrawText("P2: Vivo", MARGIN, 75, 16, GREEN);
     } else {
-        DrawText("P2: Morto", MARGIN, 105, 16, RED);
+        DrawText("P2: Morto", MARGIN, 75, 16, RED);
     }
 }
 
@@ -418,7 +418,7 @@ static void render_menu_screen(int menu_index, const char** options, int count)
 
     DrawText("Nova(Velha) InfancIA", SCREEN_WIDTH/2 - 220, 120, 40, YELLOW);
     DrawText("Crossy Road",           SCREEN_WIDTH/2 - 100, 170, 30, WHITE);
-    DrawText("Use UP/DOWN para navegar, ENTER para selecionar",
+    DrawText("Use as setas UP/DOWN para navegar e ENTER para selecionar",
              SCREEN_WIDTH/2 - 280, 220, 18, GRAY);
 
     int base_y = 270;
@@ -439,7 +439,7 @@ static void render_menu_screen(int menu_index, const char** options, int count)
  */
 static void render_game_over_screen(const GameState *state, const char *player_name, const char *player2_name, int two_players) {
     ClearBackground(BLACK);
-    DrawText("GAME OVER!", SCREEN_WIDTH/2 - 100, SCREEN_HEIGHT/2 - 150, 40, RED);
+    DrawText("GAME OVER!", SCREEN_WIDTH/2 - 180, SCREEN_HEIGHT/2 - 170, 60, RED);
     
     if (two_players) {
         // === 2 PLAYER MODE === Mostra resultados de ambos os jogadores
@@ -456,7 +456,7 @@ static void render_game_over_screen(const GameState *state, const char *player_n
         // Verifica se houve empate ou vencedor
         if (p1_score == p2_score) {
             // Empate: ambos têm a mesma pontuação
-            DrawText(TextFormat("EMPATE! Ambos com %d pontos!", p1_score), 
+            DrawText(TextFormat("Empate! Ambos com %d pontos!", p1_score), 
                      SCREEN_WIDTH/2 - 180, SCREEN_HEIGHT/2 - 20, 24, YELLOW);
         } else {
             // Determina vencedor (maior pontuação)
@@ -473,8 +473,8 @@ static void render_game_over_screen(const GameState *state, const char *player_n
     }
     
     // Instruções para o jogador
-    DrawText("Pressione R para jogar de novo", SCREEN_WIDTH/2 - 100, SCREEN_HEIGHT/2 + 50, 20, WHITE);
-    DrawText("Pressione M para voltar para o menu", SCREEN_WIDTH/2 - 120, SCREEN_HEIGHT/2 + 80, 20, WHITE);
+    DrawText("'R' para jogar de novo", SCREEN_WIDTH/2 - 100, SCREEN_HEIGHT/2 + 50, 20, GRAY);
+    DrawText("'M' para voltar ao menu", SCREEN_WIDTH/2 - 120, SCREEN_HEIGHT/2 + 80, 20, GRAY);
 }
 
 /**
@@ -488,7 +488,7 @@ static void render_name_input_screen(const char *buffer, int letterCount, const 
     ClearBackground((Color){30, 30, 30, 255});
     
     // Título da tela (customizável para P1 ou P2)
-    DrawText(title ? title : "Digite seu nome:", SCREEN_WIDTH/2 - 150, SCREEN_HEIGHT/2 - 80, 30, WHITE);
+    DrawText(title ? title : "Digite seu nome:", SCREEN_WIDTH/2 - 130, SCREEN_HEIGHT/2 - 80, 30, WHITE);
     
     // Caixa de texto (fundo escuro)
     DrawRectangle(SCREEN_WIDTH/2 - 200, SCREEN_HEIGHT/2 - 30, 400, 50, (Color){60, 60, 60, 255});
@@ -603,7 +603,7 @@ void raylib_run_game(Ranking *ranking) {
     ranking_load(ranking, RANKING_FILE);
 
     int menu_index = 0;
-    const char* MENU_OPTS[] = { "Aprender a jogar", "Jogar (1 Jogador)", "Jogar (2 Jogadores)", "Ver ranking", "Voltar" };
+    const char* MENU_OPTS[] = { "Aprender a jogar", "Jogar (1 Jogador)", "Jogar (2 Jogadores)", "Ver ranking", "Voltar pro terminal" };
     const int MENU_COUNT = 5;
 
     int exit_requested = 0;
@@ -849,15 +849,15 @@ static void render_help_screen(void)
 
     int x = 120, y = 150, lh = 28;
     DrawText("Modo 1 Jogador:", x, y, 22, YELLOW); y += lh;
-    DrawText("- W / S / A / D ou Setas: mover", x + 20, y, 22, WHITE); y += lh;
+    DrawText("- Use W / S / A / D ou setas para mover", x + 20, y, 22, WHITE); y += lh;
     DrawText("Modo 2 Jogadores:", x, y, 22, YELLOW); y += lh;
-    DrawText("- Jogador 1 (Amarelo): W / A / S / D", x + 20, y, 22, COLOR_PLAYER1); y += lh;
-    DrawText("- Jogador 2 (Ciano): Setas", x + 20, y, 22, COLOR_PLAYER2); y += lh + 10;
+    DrawText("- Jogador 1 (Galinha): W / A / S / D", x + 20, y, 22, COLOR_PLAYER1); y += lh;
+    DrawText("- Jogador 2 (Coelho): Setas", x + 20, y, 22, COLOR_PLAYER2); y += lh + 10;
     DrawText("- Evite carros na estrada", x, y, 22, WHITE); y += lh;
     DrawText("- No rio, fique em cima dos troncos", x, y, 22, WHITE); y += lh;
     DrawText("- O mapa sobe automaticamente a cada intervalo de tempo", x, y, 22, WHITE); y += lh;
     DrawText("- Pontue ao alcançar linhas ainda não visitadas", x, y, 22, WHITE); y += lh + 10;
-    DrawText("'M' para voltar ao menu", x, y, 22, GRAY);
+    DrawText("'M' para voltar ao menu", x, y, 18, GRAY);
 }
 
 static void render_ranking_screen(const Ranking *ranking)
@@ -874,7 +874,6 @@ static void render_ranking_screen(const Ranking *ranking)
     int n = 0;
 
     // Cabeçalho das colunas
-    DrawText("Pos", x, y, 22, LIGHTGRAY);
     DrawText("Nome", x + 80, y, 22, LIGHTGRAY);
     DrawText("Pontuação", x + 280, y, 22, LIGHTGRAY);
     y += lh + 5;  // Espaço extra após o cabeçalho
@@ -905,4 +904,3 @@ static void render_ranking_screen(const Ranking *ranking)
         DrawText("Nenhum registro encontrado ainda.", SCREEN_WIDTH/2 - 180, y, 22, GRAY);
     }
 }
-
