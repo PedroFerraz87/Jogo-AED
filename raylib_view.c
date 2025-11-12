@@ -49,6 +49,7 @@ static Texture2D car_texture = {0};
 static Texture2D log_texture = {0};
 static Texture2D bird_texture = {0};  // Sprite do pássaro (jogador no modo 1 jogador)
 static Texture2D heart_texture = {0}; // Sprite do coração (poder de vida)
+static Texture2D rabbit_texture = {0}; // Sprite do coelho (jogador 2 no modo 2 jogadores)
 
 // ----- Desenho voxel -----
 /**
@@ -324,16 +325,42 @@ static void render_row_two(const Row *row, int y, int p1_x, int p1_y, int p2_x, 
         }
     }
 
-    // Desenha P1 se estiver nesta linha e vivo (cor amarela)
+    // Desenha P1 se estiver nesta linha e vivo (sprite do pássaro)
     if (p1_y == y && p1_alive) {
         int p1_x_pos = start_x + p1_x * CELL_SIZE;
-        draw_player_voxel(p1_x_pos, start_y, COLOR_PLAYER1);
+        // Se a textura do pássaro foi carregada, usa a imagem PNG
+        if (bird_texture.id != 0) {
+            DrawTexturePro(
+                bird_texture,
+                (Rectangle){0, 0, (float)bird_texture.width, (float)bird_texture.height},
+                (Rectangle){(float)p1_x_pos, (float)start_y, (float)CELL_SIZE, (float)CELL_SIZE},
+                (Vector2){0, 0},
+                0.0f,
+                WHITE
+            );
+        } else {
+            // Fallback: desenha o jogador com formas geométricas se a imagem não foi carregada
+            draw_player_voxel(p1_x_pos, start_y, COLOR_PLAYER1);
+        }
     }
     
-    // Desenha P2 se estiver nesta linha e vivo (cor ciano)
+    // Desenha P2 se estiver nesta linha e vivo (sprite do coelho)
     if (p2_y == y && p2_alive) {
         int p2_x_pos = start_x + p2_x * CELL_SIZE;
-        draw_player_voxel(p2_x_pos, start_y, COLOR_PLAYER2);
+        // Se a textura do coelho foi carregada, usa a imagem PNG
+        if (rabbit_texture.id != 0) {
+            DrawTexturePro(
+                rabbit_texture,
+                (Rectangle){0, 0, (float)rabbit_texture.width, (float)rabbit_texture.height},
+                (Rectangle){(float)p2_x_pos, (float)start_y, (float)CELL_SIZE, (float)CELL_SIZE},
+                (Vector2){0, 0},
+                0.0f,
+                WHITE
+            );
+        } else {
+            // Fallback: desenha o jogador com formas geométricas se a imagem não foi carregada
+            draw_player_voxel(p2_x_pos, start_y, COLOR_PLAYER2);
+        }
     }
 }
 
@@ -495,7 +522,8 @@ void raylib_run_game(Ranking *ranking) {
         "sprites/car.png",
         "sprites/log (1).png",
         "sprites/bird.png",
-        "sprites/coracao.png"
+        "sprites/coracao.png",
+        "sprites/coelho.png"
     };
     
     // Carrega sprite do carro
@@ -544,6 +572,18 @@ void raylib_run_game(Ranking *ranking) {
         }
     } else {
         TraceLog(LOG_WARNING, "Arquivo não encontrado: %s", sprite_paths[3]);
+    }
+    
+    // Carrega sprite do coelho (jogador 2 no modo 2 jogadores)
+    if (FileExists(sprite_paths[4])) {
+        rabbit_texture = LoadTexture(sprite_paths[4]);
+        if (rabbit_texture.id != 0) {
+            TraceLog(LOG_INFO, "Sprite do coelho carregado: %s", sprite_paths[4]);
+        } else {
+            TraceLog(LOG_WARNING, "Erro ao carregar sprite do coelho");
+        }
+    } else {
+        TraceLog(LOG_WARNING, "Arquivo não encontrado: %s", sprite_paths[4]);
     }
 
     // Alvo de renderização virtual 800x600
@@ -791,6 +831,10 @@ void raylib_run_game(Ranking *ranking) {
     if (heart_texture.id != 0) {
         UnloadTexture(heart_texture);
         heart_texture = (Texture2D){0};
+    }
+    if (rabbit_texture.id != 0) {
+        UnloadTexture(rabbit_texture);
+        rabbit_texture = (Texture2D){0};
     }
 
     UnloadRenderTexture(target);
