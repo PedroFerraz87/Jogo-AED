@@ -126,9 +126,9 @@ static void generate_row(Row *row, int world_position, GameState *state)
 
     create_obstacles(row->queue, type);
     
-    // Sistema de vidas: gera poder de vida a cada 25 linhas (apenas modo 1 jogador)
-    if (state && !state->two_players && world_position > 0 && 
-        world_position % 25 == 0 && world_position != state->life_power_spawned) {
+    // Sistema de vidas: gera poder de vida periodicamente (apenas modo 1 jogador)
+    // IMPORTANTE: Só gera coração em linhas de grama para evitar obstáculos
+    if (state && !state->two_players && world_position > 0 && type == ROW_GRASS) {
         // Verifica se já existe um poder de vida no mapa
         int has_life_power = 0;
         for (int y = 0; y < MAP_HEIGHT; ++y) {
@@ -143,11 +143,24 @@ static void generate_row(Row *row, int world_position, GameState *state)
             }
         }
         
-        // Se não há poder de vida no mapa, cria um em posição aleatória
+        // Se não há poder de vida no mapa, verifica se deve gerar um novo
+        // Usa life_power_spawned como contador de linhas de grama desde o último coração
         if (!has_life_power) {
-            int life_x = utils_random_int(0, MAP_WIDTH - 1);
-            queue_set_cell(row->queue, life_x, CHAR_LIFE);
-            state->life_power_spawned = world_position;
+            // Incrementa contador de linhas de grama
+            state->life_power_spawned++;
+            
+            // Gera novo coração a cada 8-12 linhas de grama (mais frequente)
+            // Usa valor aleatório para variar o intervalo
+            int spawn_interval = 8 + (world_position % 5); // Entre 8 e 12 linhas
+            if (state->life_power_spawned >= spawn_interval) {
+                int life_x = utils_random_int(0, MAP_WIDTH - 1);
+                // Verifica se a posição está vazia (deve estar, pois é grama, mas por segurança)
+                char cell = queue_get_cell(row->queue, life_x);
+                if (cell == ' ' || cell == CHAR_GRASS) {
+                    queue_set_cell(row->queue, life_x, CHAR_LIFE);
+                    state->life_power_spawned = 0; // Reseta contador
+                }
+            }
         }
     }
 }
@@ -331,7 +344,7 @@ static void ensure_safe_area(GameState *state)
     state->vidas = 1;                    // Começa com 1 vida
     state->renascendo = 0;               // Não está renascendo
     state->renascer_timer = 0.0f;        // Timer zerado
-    state->life_power_spawned = -25;     // Inicializa para permitir primeiro spawn
+    state->life_power_spawned = 0;       // Contador de linhas de grama desde último coração
      
     // === 2 PLAYER MODE ===
     // Inicializa modo 1 jogador por padrão (two_players = 0)
@@ -413,9 +426,8 @@ static void collect_life_power(GameState *state)
                 if (state->vidas < 5) {
                     state->vidas++;
                 }
-                // Remove o poder do mapa
+                // Remove o poder do mapa (novo coração será gerado automaticamente na próxima linha de grama)
                 queue_set_cell(row->queue, state->player_x, ' ');
-                state->life_power_spawned = -1; // Permite gerar novo poder
             }
         }
     }
@@ -436,11 +448,18 @@ static void handle_death(GameState *state)
         return;
     }
     
+    // IMPORTANTE: Se já está renascendo, não processa outra morte
+    // Isso previne múltiplas mortes no mesmo frame ou frames consecutivos
+    if (state->renascendo) {
+        return;
+    }
+    
     // Reduz uma vida
     state->vidas--;
     
     // Se não tem mais vidas, termina o jogo
     if (state->vidas <= 0) {
+        state->vidas = 0; // Garante que não fica negativo
         state->game_over = 1;
         return;
     }
