@@ -859,7 +859,7 @@ void game_handle_input_player(GameState *state, int player_id, char key)
     
     // Garante que o jogador não saiu dos limites do mapa
     if (player->x < 0) player->x = 0;
-    if (player->x >= MAP_WIDTH) player->x = MAP_WIDTH - 1;
+    if (player->x >= MAP_WIDTH) player->x = MAP_WIDTH - 2;
     if (player->y < 0) player->y = 0;
     if (player->y >= MAP_HEIGHT) player->y = MAP_HEIGHT - 1;
     

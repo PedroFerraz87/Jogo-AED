@@ -3,9 +3,10 @@
 #include "game.h"
 #include "ranking.h"
 #include "utils.h"
+#include "sound.h"
 #include <string.h>
-#include <stdio.h>  // Para snprintf()
-#include <math.h>   // Para ceil()
+#include <stdio.h>  
+#include <math.h>   
 
 // ---- FORWARD DECLARATIONS (prototipos) ----
 static void render_menu_screen(int menu_index, const char** options, int count);
@@ -507,7 +508,7 @@ static void render_game_over_screen(const GameState *state, const char *player_n
     } else {
         // Modo 1 jogador: mostra pontuação final normal
         DrawText(TextFormat("Pontuação final: %d", state->score), SCREEN_WIDTH/2 - 100, SCREEN_HEIGHT/2 - 50, 24, WHITE);
-        DrawText(TextFormat("Jogador: %s", player_name), SCREEN_WIDTH/2 - 80, SCREEN_HEIGHT/2 + 10, 20, GREEN);
+        DrawText(TextFormat("Jogador: %s", player_name), SCREEN_WIDTH/2 - 80, SCREEN_HEIGHT/2 + 10, 20, YELLOW);
     }
     
     // Instruções para o jogador - centralizadas
@@ -560,6 +561,7 @@ static void render_name_input_screen(const char *buffer, int letterCount, const 
 
 // ----- Loop principal com RenderTexture (resolução virtual) -----
 void raylib_run_game(Ranking *ranking) {
+    sound_update();
     SetConfigFlags(FLAG_VSYNC_HINT | FLAG_FULLSCREEN_MODE);
     InitWindow(0, 0, "Nova (Velha) Infancia - Crossy Road");
     SetTargetFPS(60);
@@ -705,6 +707,7 @@ void raylib_run_game(Ranking *ranking) {
     int exit_requested = 0;
 
     while (!WindowShouldClose()) {
+        sound_update();
         // Alternar fullscreen
         if (IsKeyPressed(KEY_F11) ||
             (IsKeyDown(KEY_LEFT_ALT) && IsKeyPressed(KEY_ENTER))) {

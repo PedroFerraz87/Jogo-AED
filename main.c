@@ -5,6 +5,7 @@
 #include "game.h"
 #include "ranking.h"
 #include "raylib_view.h"
+#include "sound.h"
 
 #define RANKING_FILE "ranking.txt"
 
@@ -28,6 +29,8 @@ static void show_menu(void) {
 }
 
 int main(void) {
+    sound_init();
+
     Ranking ranking;
     ranking_load(&ranking, RANKING_FILE);
 
@@ -63,5 +66,6 @@ int main(void) {
             break;
         }
     }
+    sound_close();
     return 0;
 }

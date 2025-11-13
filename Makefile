@@ -12,6 +12,7 @@ SOURCES = \
 	$(SRC_DIR)/ranking.c \
 	$(SRC_DIR)/utils.c \
 	$(SRC_DIR)/raylib_view.c
+	$(SRC_DIR)/sound.c
 
 CFLAGS = -Wall -std=c99 -DENABLE_RAYLIB -I$(LIB_DIR) -I$(SRC_DIR)
 LIBS = -L$(LIB_DIR) -lraylib -lopengl32 -lgdi32 -lwinmm
