@@ -351,24 +351,7 @@ static void render_row_two(const Row *row, int y, int p1_x, int p1_y, int p2_x, 
 
             if (cell == CHAR_CAR)      draw_car_voxel(cell_x, start_y);
             else if (cell == CHAR_LOG) draw_log_voxel(cell_x, start_y);
-            else if (cell == CHAR_LIFE) {
-                // Desenha poder de vida (coração)
-                if (heart_texture.id != 0) {
-                    // Usa o sprite do coração se disponível
-                    DrawTexturePro(
-                        heart_texture,
-                        (Rectangle){0, 0, (float)heart_texture.width, (float)heart_texture.height},
-                        (Rectangle){(float)cell_x, (float)start_y, (float)CELL_SIZE, (float)CELL_SIZE},
-                        (Vector2){0, 0},
-                        0.0f,
-                        WHITE
-                    );
-                } else {
-                    // Fallback: desenha coração com formas geométricas
-                    DrawCircle(cell_x + CELL_SIZE/2, start_y + CELL_SIZE/2, CELL_SIZE/3, RED);
-                    DrawText("+", cell_x + CELL_SIZE/2 - 5, start_y + CELL_SIZE/2 - 8, 16, WHITE);
-                }
-            }
+            // Modo 2 jogadores não tem sistema de vidas, então não renderiza corações
         }
     }
 
