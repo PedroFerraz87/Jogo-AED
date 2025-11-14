@@ -1,5 +1,6 @@
 hbjn;109
 edwfedgb;86
+1wqdwfeb;81
 sfdgf;75
 qwdfedgrthjy;74
 caio;73
@@ -11,6 +12,7 @@ r4rtythjy;50
 2ewfegsrfhdngf;49
 wsaddfbg;49
 caio;44
+qwdefg;41
 fbgns;36
 pedro;35
 t5rgfb;35
@@ -41,6 +43,7 @@ pedro;22
 pedro;22
 pedro;22
 pedro;22
+qdvfbg;22
 wdsfnm,n;22
 DFB ;21
 dsfvf;21
@@ -112,6 +115,7 @@ pedro;6
 caio;5
 caio;5
 caio;5
+esrf;5
 mnmnmn;5
 pedro;5
 pedro;5
@@ -161,6 +165,7 @@ sfds;3
 waefrg;3
 wqerfgh;3
 1qswd;2
+2;2
 caio;2
 e;2
 e;2
@@ -193,8 +198,3 @@ pedro;1
 pedro;1
 pedro;1
 pedro;1
-pedro;1
-pedro;1
-pedrop;1
-sx;1
-ww;1
