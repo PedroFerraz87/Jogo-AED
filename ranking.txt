@@ -86,6 +86,7 @@ caio;8
 caio;8
 caio;8
 ee;8
+efsrg;8
 iwdjaj;8
 khujhn;8
 kjkjkj;8
@@ -112,6 +113,7 @@ oi;6
 pedor;6
 pedro;6
 pedro;6
+wsedrf;6
 caio;5
 caio;5
 caio;5
@@ -140,6 +142,7 @@ pedro;4
 pedro;4
 pedro;4
 qsadfvfb;4
+qwderfg;4
 burle;3
 caio;3
 caio;3
@@ -169,6 +172,7 @@ wqerfgh;3
 caio;2
 e;2
 e;2
+er;2
 fvdsfdacv;2
 oi;2
 oi;2
@@ -193,8 +197,4 @@ caio;1
 caio;1
 dldld;1
 knjn;1
-pedro;1
-pedro;1
-pedro;1
-pedro;1
 pedro;1
