@@ -43,7 +43,6 @@ int main(void) {
             while ((c = getchar()) != '\n' && c != EOF) {}
             continue;
         }
-        sound_init();
         int c;
         while ((c = getchar()) != '\n' && c != EOF) {}
 
@@ -66,6 +65,5 @@ int main(void) {
             break;
         }
     }
-    sound_close();
     return 0;
 }
