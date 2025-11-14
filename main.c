@@ -29,11 +29,10 @@ static void show_menu(void) {
 }
 
 int main(void) {
-    sound_init();
-
+    
     Ranking ranking;
     ranking_load(&ranking, RANKING_FILE);
-
+    
     int opcao = -1;
     while (1) {
         utils_clear_screen();
@@ -44,6 +43,7 @@ int main(void) {
             while ((c = getchar()) != '\n' && c != EOF) {}
             continue;
         }
+        sound_init();
         int c;
         while ((c = getchar()) != '\n' && c != EOF) {}
 

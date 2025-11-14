@@ -561,10 +561,10 @@ static void render_name_input_screen(const char *buffer, int letterCount, const 
 
 // ----- Loop principal com RenderTexture (resolução virtual) -----
 void raylib_run_game(Ranking *ranking) {
-    sound_update();
     SetConfigFlags(FLAG_VSYNC_HINT | FLAG_FULLSCREEN_MODE);
     InitWindow(0, 0, "Nova (Velha) Infancia - Crossy Road");
     SetTargetFPS(60);
+    sound_init();
 
     // === CARREGAMENTO DE SPRITES ===
     // Carrega as imagens da pasta sprites/
@@ -891,6 +891,7 @@ void raylib_run_game(Ranking *ranking) {
 
         // ----- DRAW target scaled to screen (letterbox) -----
         BeginDrawing();
+        sound_update();
         ClearBackground(BLACK);
 
         float sw = (float)GetScreenWidth();
@@ -953,6 +954,7 @@ void raylib_run_game(Ranking *ranking) {
     }
 
     UnloadRenderTexture(target);
+    sound_close();
     CloseWindow();
 }
 

@@ -1,23 +1,40 @@
 #include "raylib.h"
+#include "sound.h"
+#include <stdio.h>
+#include <stdbool.h>
 
-static Music actionMusic; // Música de fundo
+static Music actionMusic;
+static bool musicLoaded = false;
 
-// Inicializa o sistema de áudio e carrega a música
 void sound_init(void) {
     InitAudioDevice();
+
+    // Aguarda um pequeno tempo para inicializar corretamente o driver de áudio
+    SetExitKey(0);
+    WaitTime(0.2);
+
+    // Caminho certo
     actionMusic = LoadMusicStream("assets/sounds/music.ogg");
-    SetMusicVolume(actionMusic, 1.0f);
-    PlayMusicStream(actionMusic);
+
+    if (actionMusic.stream.buffer == NULL) {
+        printf("⚠️  ERRO: não foi possível carregar assets/sounds/music.ogg\n");
+        musicLoaded = false;
+    } else {
+        PlayMusicStream(actionMusic);
+        SetMusicVolume(actionMusic, 0.8f); // volume confortável
+        musicLoaded = true;
+        printf("🎵 Música carregada com sucesso!\n");
+    }
 }
 
-// Atualiza o stream de áudio (precisa ser chamado a cada frame)
 void sound_update(void) {
-    UpdateMusicStream(actionMusic);
+    if (musicLoaded) UpdateMusicStream(actionMusic);
 }
 
-// Encerra o áudio e libera memória
 void sound_close(void) {
-    StopMusicStream(actionMusic);
-    UnloadMusicStream(actionMusic);
+    if (musicLoaded) {
+        StopMusicStream(actionMusic);
+        UnloadMusicStream(actionMusic);
+    }
     CloseAudioDevice();
 }
