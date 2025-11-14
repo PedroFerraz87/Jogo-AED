@@ -17,13 +17,11 @@ void sound_init(void) {
     actionMusic = LoadMusicStream("assets/sounds/music.ogg");
 
     if (actionMusic.stream.buffer == NULL) {
-        printf("⚠️  ERRO: não foi possível carregar assets/sounds/music.ogg\n");
         musicLoaded = false;
     } else {
         PlayMusicStream(actionMusic);
-        SetMusicVolume(actionMusic, 0.8f); // volume confortável
+        SetMusicVolume(actionMusic, 0.8f); 
         musicLoaded = true;
-        printf("🎵 Música carregada com sucesso!\n");
     }
 }
 
