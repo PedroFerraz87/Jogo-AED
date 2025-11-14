@@ -4,7 +4,7 @@
 #include "lista.h"
 
 // Map configuration
-#define MAP_WIDTH  31
+#define MAP_WIDTH  28  // Reduzido de 31 para 28 para caber na tela (28*25 + 50*2 = 800px)
 #define MAP_HEIGHT 20  // mais linhas para melhor visualização
 // PLAYER_ROW não é usado no modelo atual de scroll livre, mas pode ficar
 #define PLAYER_ROW (MAP_HEIGHT - 1)

@@ -468,9 +468,33 @@ static void handle_death(GameState *state)
     state->renascendo = 1;
     state->renascer_timer = 3.0f; // 3 segundos
     
-    // Reposiciona o jogador no centro inferior (posição segura)
+    // Procura uma posição segura (grama) para renascer, começando de baixo para cima
+    int safe_y = -1;
+    for (int y = MAP_HEIGHT - 1; y >= 0; --y) {
+        if (state->rows[y].type == ROW_GRASS) {
+            safe_y = y;
+            break;
+        }
+    }
+    
+    // Se não encontrou grama, força a última linha a ser grama (fallback de segurança)
+    if (safe_y == -1) {
+        safe_y = MAP_HEIGHT - 1;
+        row_destroy(&state->rows[safe_y]);
+        state->rows[safe_y].type = ROW_GRASS;
+        state->rows[safe_y].queue = queue_create(MAP_WIDTH);
+        state->rows[safe_y].direction = 0;
+        state->rows[safe_y].speed_ticks = 0;
+        state->rows[safe_y].tick_counter = 0;
+        state->rows[safe_y].moved_this_tick = 0;
+        if (state->rows[safe_y].queue) {
+            queue_fill_pattern(state->rows[safe_y].queue, ' ', 1, ' ', 1);
+        }
+    }
+    
+    // Reposiciona o jogador no centro da linha de grama encontrada
     state->player_x = MAP_WIDTH / 2;
-    state->player_y = MAP_HEIGHT - 2;
+    state->player_y = safe_y;
     
     // Atualiza a posição absoluta para permitir pontuação imediata após renascer
     int abs_now = state->world_head + state->player_y;
@@ -754,7 +778,7 @@ static void check_collision_player(GameState *state, Player *player)
     } else if (key == 'A') {                     // Esquerda (se não está na borda).
         if (state->player_x > 0) state->player_x--;
     } else if (key == 'D') {                     // Direita (se não está na borda).
-        if (state->player_x < MAP_WIDTH - 2) state->player_x++;
+        if (state->player_x < MAP_WIDTH - 1) state->player_x++;
     } else if (key == 'Q') {                     // Sair.
         state->game_over = 1;
     }
