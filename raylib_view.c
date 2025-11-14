@@ -8,7 +8,6 @@
 #include <stdio.h>  
 #include <math.h>   
 
-// ---- FORWARD DECLARATIONS (prototipos) ----
 static void render_menu_screen(int menu_index, const char** options, int count);
 static void render_help_screen(void);
 static void render_ranking_screen(const Ranking *ranking);
@@ -23,39 +22,36 @@ static void render_ranking_screen(const Ranking *ranking);
 #define COLOR_GRASS (Color){76, 175, 80, 255}
 #define COLOR_ROAD  (Color){97, 97, 97, 255}
 #define COLOR_RIVER (Color){33, 150, 243, 255}
-// Cores dos jogadores para textos e UI
-#define COLOR_PLAYER1 (Color){255, 193, 7, 255}    // Amarelo - Jogador 1 (P1)
-#define COLOR_PLAYER2 (Color){0, 200, 255, 255}    // Ciano - Jogador 2 (P2)
+// Cores dos jogadores para textos 
+#define COLOR_PLAYER1 (Color){255, 193, 7, 255} 
+#define COLOR_PLAYER2 (Color){0, 200, 255, 255}    
 
 // Estados do jogo
 typedef enum {
     GAME_START_SCREEN,
     GAME_NAME_INPUT_SCREEN,
-    GAME_NAME_INPUT_SCREEN_P2,  // === 2 PLAYER MODE === Tela para input do nome do Jogador 2
+    GAME_NAME_INPUT_SCREEN_P2,  // Modo 2 jogadores: tela para input do nome do Jogador 2
     GAME_PLAYING,
     GAME_OVER_SCREEN,
     GAME_HELP_SCREEN,
     GAME_RANKING_SCREEN
 } GameScreen;
 
-// === TEXTURAS/SPRITES ===
 // Variáveis estáticas para armazenar as texturas dos sprites
-static Texture2D car_texture = {0};
-static Texture2D log_texture = {0};
+static Texture2D car_texture = {0}; // Sprite do carro
+static Texture2D log_texture = {0}; // Sprite do tronco
 static Texture2D bird_texture = {0};  // Sprite do pássaro (jogador no modo 1 jogador)
 static Texture2D heart_texture = {0}; // Sprite do coração (poder de vida)
 static Texture2D rabbit_texture = {0}; // Sprite do coelho (jogador 2 no modo 2 jogadores)
 static Texture2D menu_texture = {0};  // Imagem de fundo do menu
 static Texture2D grass_texture = {0}; // Textura do gramado
 static Texture2D river_texture = {0}; // Textura do rio
-static Texture2D road_texture = {0};  // Textura da estrada/rua
+static Texture2D road_texture = {0};  // Textura da rua
 
 // ----- Funções de desenho de sprites -----
-/**
- * Desenha o jogador no modo 1 jogador (sprite do pássaro)
- */
+
+// Desenha o jogador no modo 1 jogador (sprite do pássaro)
 static void draw_player_voxel_old(int x, int y) {
-    // Desenha o sprite do pássaro
     if (bird_texture.id != 0) {
         DrawTexturePro(
             bird_texture,
@@ -67,9 +63,7 @@ static void draw_player_voxel_old(int x, int y) {
         );
     }
 }
-
 static void draw_car_voxel(int x, int y) {
-    // Desenha o sprite do carro
     if (car_texture.id != 0) {
         DrawTexturePro(
             car_texture,
@@ -81,9 +75,7 @@ static void draw_car_voxel(int x, int y) {
         );
     }
 }
-
 static void draw_log_voxel(int x, int y) {
-    // Desenha o sprite do tronco
     if (log_texture.id != 0) {
         DrawTexturePro(
             log_texture,
@@ -95,8 +87,7 @@ static void draw_log_voxel(int x, int y) {
         );
     }
 }
-
-// ----- Render de linhas e jogo -----
+// Render de linhas e jogo
 static void render_row(const Row *row, int y, int player_x, int player_y) {
     int start_x = MARGIN;
     int start_y = MARGIN + y * CELL_SIZE;
@@ -212,8 +203,7 @@ static void render_game(const GameState *state) {
         snprintf(countdown_text, sizeof(countdown_text), "Reaparecendo em %d...", countdown);
         DrawText(countdown_text, SCREEN_WIDTH/2 - 120, SCREEN_HEIGHT/2 - 20, 24, YELLOW);
         
-        // Não renderiza o jogo durante renascimento
-        return;
+        return; // Não renderiza o jogo durante renascimento
     }
 
     for (int y = 0; y < MAP_HEIGHT; ++y) {
@@ -269,8 +259,8 @@ static void render_game(const GameState *state) {
     }
 }
 
-// === 2 PLAYER MODE ===
-/**
+// Modo 2 jogadores
+/*
  * Renderiza uma linha do mapa no modo 2 jogadores
  * Similar a render_row, mas desenha ambos os jogadores (P1 e P2) se estiverem nesta linha
  * @param row Ponteiro para a linha do mapa a renderizar
@@ -387,15 +377,12 @@ static void render_row_two(const Row *row, int y, int p1_x, int p1_y, int p2_x, 
     }
 }
 
-/**
+/*
  * Renderiza o jogo completo no modo 2 jogadores
  * Mostra ambos os jogadores, suas pontuações individuais e status (vivo/morto)
- * === 2 PLAYER MODE ===
  */
 static void render_game_two(const GameState *state) {
     ClearBackground(BLACK);
-
-    // Modo 2P não tem sistema de vidas/renascimento
 
     // Obtém posições e estados de ambos os jogadores
     int p1_x, p1_y, p2_x, p2_y;
@@ -414,9 +401,9 @@ static void render_game_two(const GameState *state) {
     // Desenha bordas do mapa
     DrawRectangleLines(MARGIN, MARGIN, MAP_WIDTH * CELL_SIZE, MAP_HEIGHT * CELL_SIZE, WHITE);
 
-    // Pontuação do Jogador 1 (amarelo)
+    // Pontuação do Jogador 1
     DrawText(TextFormat("Pontuação do P1: %d", p1_score), MARGIN, 10, 20, COLOR_PLAYER1);
-    // Pontuação do Jogador 2 (ciano)
+    // Pontuação do Jogador 2 
     DrawText(TextFormat("Pontuação do P2: %d", p2_score), MARGIN, 30, 20, COLOR_PLAYER2);
     
     // Status de vida do Jogador 1
@@ -470,7 +457,7 @@ static void render_menu_screen(int menu_index, const char** options, int count)
 
 /**
  * Renderiza a tela de Game Over
- * === 2 PLAYER MODE === Adaptada para mostrar resultados de ambos os jogadores
+ * Modo 2 jogadores: adaptada para mostrar resultados de ambos os jogadores
  * @param state Estado do jogo
  * @param player_name Nome do Jogador 1 (ou único jogador no modo 1P)
  * @param player2_name Nome do Jogador 2 (NULL no modo 1P)
@@ -480,21 +467,19 @@ static void render_game_over_screen(const GameState *state, const char *player_n
     ClearBackground(BLACK);
     DrawText("GAME OVER!", SCREEN_WIDTH/2 - 180, SCREEN_HEIGHT/2 - 170, 60, RED);
     
-    if (two_players) {
-        // === 2 PLAYER MODE === Mostra resultados de ambos os jogadores
+    if (two_players) { // 2 jogadores
         int p1_score = game_get_player_score(state, 1);
         int p2_score = game_get_player_score(state, 2);
         
-        // Mostra pontuação do Jogador 1 (amarelo)
+        // Mostra pontuação do Jogador 1 
         DrawText(TextFormat("P1 (%s): %d", player_name ? player_name : "Jogador1", p1_score), 
                  SCREEN_WIDTH/2 - 120, SCREEN_HEIGHT/2 - 90, 22, COLOR_PLAYER1);
-        // Mostra pontuação do Jogador 2 (ciano)
+        // Mostra pontuação do Jogador 2 
         DrawText(TextFormat("P2 (%s): %d", player2_name ? player2_name : "Jogador2", p2_score), 
                  SCREEN_WIDTH/2 - 120, SCREEN_HEIGHT/2 - 60, 22, COLOR_PLAYER2);
         
         // Verifica se houve empate ou vencedor
         if (p1_score == p2_score) {
-            // Empate: ambos têm a mesma pontuação
             DrawText(TextFormat("Empate! Ambos com %d pontos!", p1_score), 
                      SCREEN_WIDTH/2 - 180, SCREEN_HEIGHT/2 - 20, 24, YELLOW);
         } else {
@@ -505,8 +490,7 @@ static void render_game_over_screen(const GameState *state, const char *player_n
             DrawText(TextFormat("Vencedor: %s com %d pontos!", winner_name, winner_score), 
                      SCREEN_WIDTH/2 - 180, SCREEN_HEIGHT/2 - 20, 24, YELLOW);
         }
-    } else {
-        // Modo 1 jogador: mostra pontuação final normal
+    } else { // 1 jogador
         DrawText(TextFormat("Pontuação final: %d", state->score), SCREEN_WIDTH/2 - 100, SCREEN_HEIGHT/2 - 50, 24, WHITE);
         DrawText(TextFormat("Jogador: %s", player_name), SCREEN_WIDTH/2 - 80, SCREEN_HEIGHT/2 + 10, 20, YELLOW);
     }
@@ -522,7 +506,7 @@ static void render_game_over_screen(const GameState *state, const char *player_n
 
 /**
  * Renderiza a tela de input de nome
- * === 2 PLAYER MODE === Adaptada para aceitar título customizado (P1 ou P2)
+ * Modo 2 jogadores: aq '' daptada para aceitar título customizado (P1 ou P2)
  * @param buffer Buffer com o texto digitado
  * @param letterCount Número de letras digitadas
  * @param title Título da tela (ex: "Digite o nome do Jogador 1:" ou "Digite o nome do Jogador 2:")
@@ -566,7 +550,6 @@ void raylib_run_game(Ranking *ranking) {
     SetTargetFPS(60);
     sound_init();
 
-    // === CARREGAMENTO DE SPRITES ===
     // Carrega as imagens da pasta sprites/
     const char* sprite_paths[] = {
         "sprites/car.png",
@@ -692,8 +675,8 @@ void raylib_run_game(Ranking *ranking) {
     GameState state;
     GameScreen current_screen = GAME_START_SCREEN;
     char player_name[MAX_NAME_LEN] = {0};
-    char player2_name[MAX_NAME_LEN] = {0};  // === 2 PLAYER MODE ===
-    int two_players_mode = 0;  // === 2 PLAYER MODE ===
+    char player2_name[MAX_NAME_LEN] = {0};  
+    int two_players_mode = 0; 
 
     int name_input_letterCount = 0;
     char name_input_buffer[MAX_NAME_LEN] = {0};
@@ -727,7 +710,7 @@ void raylib_run_game(Ranking *ranking) {
                         two_players_mode = 0;
                         name_input_letterCount = 0; name_input_buffer[0] = '\0';
                         current_screen = GAME_NAME_INPUT_SCREEN;
-                    } else if (menu_index == 2) { // === 2 PLAYER MODE === Jogar (2 Jogadores)
+                    } else if (menu_index == 2) { //  Jogar (2 Jogadores)
                         two_players_mode = 1;
                         name_input_letterCount = 0; name_input_buffer[0] = '\0';
                         player2_name[0] = '\0';
@@ -754,7 +737,6 @@ void raylib_run_game(Ranking *ranking) {
                     strncpy(player_name, name_input_buffer, MAX_NAME_LEN - 1);
                     player_name[MAX_NAME_LEN - 1] = '\0';
                     if (two_players_mode) {
-                        // === 2 PLAYER MODE === Pede nome do P2
                         name_input_letterCount = 0; name_input_buffer[0] = '\0';
                         current_screen = GAME_NAME_INPUT_SCREEN_P2;
                     } else {
@@ -766,7 +748,7 @@ void raylib_run_game(Ranking *ranking) {
                 if (IsKeyPressed(KEY_ESCAPE)) current_screen = GAME_START_SCREEN;
             } break;
 
-            // === 2 PLAYER MODE ===
+            // Modo 2 jogadores
             case GAME_NAME_INPUT_SCREEN_P2: {
                 int key = GetCharPressed();
                 while (key > 0) {
@@ -792,7 +774,6 @@ void raylib_run_game(Ranking *ranking) {
 
             case GAME_PLAYING: {
                 if (two_players_mode) {
-                    // === 2 PLAYER MODE ===
                     // P1: WASD
                     if (IsKeyPressed(KEY_W)) game_handle_input_player(&state, 1, 'W');
                     if (IsKeyPressed(KEY_S)) game_handle_input_player(&state, 1, 'S');
@@ -816,7 +797,7 @@ void raylib_run_game(Ranking *ranking) {
 
                 if (state.game_over) {
                     if (two_players_mode) {
-                        // === 2 PLAYER MODE === Salva apenas o melhor score
+                        // Salva apenas o melhor score
                         int p1_score = game_get_player_score(&state, 1);
                         int p2_score = game_get_player_score(&state, 2);
                         if (p1_score > p2_score) {
@@ -854,7 +835,7 @@ void raylib_run_game(Ranking *ranking) {
 
         if (exit_requested) break;
 
-        // ----- DRAW to virtual target (800x600) -----
+        // Desenhar alvo virtual
         BeginTextureMode(target);
         {
             // desenha como antes, usando SCREEN_WIDTH/HEIGHT fixos
@@ -889,7 +870,7 @@ void raylib_run_game(Ranking *ranking) {
         }
         EndTextureMode();
 
-        // ----- DRAW target scaled to screen (letterbox) -----
+        // Desenhar alvo dimensionado para a tela 
         BeginDrawing();
         sound_update();
         ClearBackground(BLACK);
@@ -910,12 +891,10 @@ void raylib_run_game(Ranking *ranking) {
             0.0f,
             WHITE
         );
-
         EndDrawing();
     }
 
-    // === DESCARREGAMENTO DE SPRITES ===
-    // Descarrega as texturas para liberar memória
+    // Descarrega as texturas das sprites para liberar memória
     if (car_texture.id != 0) {
         UnloadTexture(car_texture);
         car_texture = (Texture2D){0};
@@ -958,9 +937,8 @@ void raylib_run_game(Ranking *ranking) {
     CloseWindow();
 }
 
-// ----- Telas auxiliares -----
-static void render_help_screen(void)
-{
+// Telas auxiliares
+static void render_help_screen(void) {
     ClearBackground(BLACK);
     DrawText("Como jogar", SCREEN_WIDTH/2 - 100, 80, 32, YELLOW);
 
@@ -979,8 +957,7 @@ static void render_help_screen(void)
     DrawText(menu_back_text, SCREEN_WIDTH/2 - menu_back_width/2, y, 18, GRAY);
 }
 
-static void render_ranking_screen(const Ranking *ranking)
-{
+static void render_ranking_screen(const Ranking *ranking) {
     ClearBackground(BLACK);
     DrawText("Ranking", SCREEN_WIDTH/2 - 70, 80, 32, YELLOW);
     const char *menu_ranking_text = "'M' para voltar ao menu";
@@ -999,20 +976,17 @@ static void render_ranking_screen(const Ranking *ranking)
     DrawText("Pontuação", x + 280, y, 22, LIGHTGRAY);
     y += lh + 5;  // Espaço extra após o cabeçalho
     
-    // Linha separadora
-    DrawLine(x - 10, y - 5, x + 380, y - 5, GRAY);
+    DrawLine(x - 10, y - 5, x + 380, y - 5, GRAY);     // Linha separadora
 
     for (int i = 0; i < ranking->count && n < maxShow; ++i) {
         const char* name = ranking->items[i].name;
         int score = ranking->items[i].score;
 
-        // Posição (mais espaçada)
-        DrawText(TextFormat("%2d.", i + 1), x, y, 24, WHITE);
-        
-        // Nome (com mais espaço)
-        DrawText(name, x + 80, y, 24, WHITE);
-        
-        // Pontuação (alinhada à direita, mais espaçada)
+        DrawText(TextFormat("%2d.", i + 1), x, y, 24, WHITE); // Posição (mais espaçada)
+
+        DrawText(name, x + 80, y, 24, WHITE);  // Nome (com mais espaço)
+
+        // Pontuação 
         const char* scoreText = TextFormat("%d", score);
         int scoreWidth = MeasureText(scoreText, 24);
         DrawText(scoreText, x + 380 - scoreWidth, y, 24, YELLOW);
@@ -1020,7 +994,6 @@ static void render_ranking_screen(const Ranking *ranking)
         y += lh;
         n++;
     }
-
     if (n == 0) {
         DrawText("Nenhum registro encontrado ainda.", SCREEN_WIDTH/2 - 180, y, 22, GRAY);
     }

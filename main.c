@@ -29,7 +29,7 @@ int main(void) {
         utils_clear_screen();
         show_menu();
 
-        printf("Número: ");
+        printf("Numero: ");
         if (!fgets(buffer, sizeof(buffer), stdin)) {
             continue;
         }
