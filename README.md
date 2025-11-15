@@ -8,12 +8,8 @@
 - Pedro Valença Ferraz - pvf@cesar.school
 - Caio Sena Santos - css4@cesar.school
 
-## Requisitos
-- Compilador C (gcc)
-- Raylib para interface gráfica
-
-## Como compilar (já com a biblioteca Raylib instalada)
-1. cd /"seu_caminho..."/GitHub/Jogo-AED   
+## Como compilar (já com a biblioteca Raylib instalada e compilador em C (gcc))
+1. cd /c/Users/"seu_caminho..."/Jogo-AED   
 2. gcc -Wall -std=c99 -DENABLE_RAYLIB main.c sound.c game.c lista.c ranking.c utils.c raylib_view.c -lraylib -lopengl32 -lgdi32 -lwinmm -o crossy.exe
 3. ./crossy.exe
 
