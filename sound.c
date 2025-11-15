@@ -5,6 +5,7 @@
 
 static Music actionMusic;
 static bool musicLoaded = false;
+static bool musicEnabled = true;  // Estado da música (ligada/desligada)
 
 void sound_init(void) {
     InitAudioDevice();
@@ -26,7 +27,25 @@ void sound_init(void) {
 }
 
 void sound_update(void) {
-    if (musicLoaded) UpdateMusicStream(actionMusic);
+    if (musicLoaded && musicEnabled) {
+        UpdateMusicStream(actionMusic);
+    }
+}
+
+void sound_toggle(void) {
+    if (!musicLoaded) return;
+    
+    musicEnabled = !musicEnabled;
+    
+    if (musicEnabled) {
+        ResumeMusicStream(actionMusic);
+    } else {
+        PauseMusicStream(actionMusic);
+    }
+}
+
+bool sound_is_enabled(void) {
+    return musicEnabled;
 }
 
 void sound_close(void) {

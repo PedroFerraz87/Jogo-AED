@@ -451,7 +451,14 @@ static void render_menu_screen(int menu_index, const char** options, int count)
         // Texto selecionado: amarelo, texto normal: preto (para contraste)
         Color c = (i == menu_index) ? YELLOW : BLACK;
         if (i == menu_index) DrawText(">", SCREEN_WIDTH/2 - 140, base_y + i*40, 26, c);
-        DrawText(options[i],  SCREEN_WIDTH/2 - 110, base_y + i*40, 26, c);
+        
+        // Para a opção de música, mostra o estado atual (ON/OFF)
+        if (i == 4) { // Índice da opção "Musica: ON/OFF"
+            const char* music_status = sound_is_enabled() ? "Musica: ON" : "Musica: OFF";
+            DrawText(music_status, SCREEN_WIDTH/2 - 110, base_y + i*40, 26, c);
+        } else {
+            DrawText(options[i],  SCREEN_WIDTH/2 - 110, base_y + i*40, 26, c);
+        }
     }
 }
 
@@ -684,8 +691,8 @@ void raylib_run_game(Ranking *ranking) {
     ranking_load(ranking, RANKING_FILE);
 
     int menu_index = 0;
-    const char* MENU_OPTS[] = { "Aprender a jogar", "Jogar (1 Jogador)", "Jogar (2 Jogadores)", "Ver ranking", "Voltar pro terminal" };
-    const int MENU_COUNT = 5;
+    const char* MENU_OPTS[] = { "Aprender a jogar", "Jogar (1 Jogador)", "Jogar (2 Jogadores)", "Ver ranking", "Musica: ON/OFF", "Voltar pro terminal" };
+    const int MENU_COUNT = 6;
 
     int exit_requested = 0;
 
@@ -716,7 +723,8 @@ void raylib_run_game(Ranking *ranking) {
                         player2_name[0] = '\0';
                         current_screen = GAME_NAME_INPUT_SCREEN;
                     } else if (menu_index == 3) current_screen = GAME_RANKING_SCREEN;
-                    else if (menu_index == 4) exit_requested = 1;
+                    else if (menu_index == 4) sound_toggle(); // Alterna música
+                    else if (menu_index == 5) exit_requested = 1;
                 }
             } break;
 
@@ -773,6 +781,11 @@ void raylib_run_game(Ranking *ranking) {
             } break;
 
             case GAME_PLAYING: {
+                // Atalho para alternar música (tecla M)
+                if (IsKeyPressed(KEY_M)) {
+                    sound_toggle();
+                }
+                
                 if (two_players_mode) {
                     // P1: WASD
                     if (IsKeyPressed(KEY_W)) game_handle_input_player(&state, 1, 'W');

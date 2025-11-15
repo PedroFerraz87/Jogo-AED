@@ -17,6 +17,7 @@ fbgns;36
 pedro;35
 t5rgfb;35
 qwdefrfg;34
+CAIO SENA ;33
 pedro;33
 caio1;31
 pedrop;31
@@ -64,6 +65,7 @@ pedro;17
 caio;13
 wef;12
 wqefrg;12
+PEDRO;11
 edf;11
 ee;11
 pedro;11
@@ -143,6 +145,7 @@ pedro;4
 pedro;4
 qsadfvfb;4
 qwderfg;4
+HBHB;3
 burle;3
 caio;3
 caio;3
@@ -195,6 +198,3 @@ caio;1
 caio;1
 caio;1
 caio;1
-dldld;1
-knjn;1
-pedro;1
