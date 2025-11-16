@@ -3,8 +3,8 @@
 
 #include <stddef.h>
 
-// Circular queue used to represent one scrolling row of the map.
-// The queue stores ASCII cells and supports rotation to simulate movement.
+// Fila circular usada para representar uma linha rolante do mapa.
+// A fila armazena células ASCII e suporta rotação para simular movimento.
 // Implementada como lista encadeada circular com nós.
 
 // Nó da lista encadeada circular
@@ -15,38 +15,33 @@ typedef struct Node {
 
 // Fila circular implementada com lista encadeada
 typedef struct CircularQueue {
-    int length;       // number of cells (columns)
+    int length;       // número de células (colunas)
     Node *head;       // ponteiro para o primeiro nó (lista circular)
 } CircularQueue;
 
-// Creates a queue with given length, initializes all cells to ' '.
+// Cria uma fila com o comprimento dado, inicializa todas as células com ' '.
 CircularQueue *queue_create(int length);
 
-// Frees queue memory.
+// Libera a memória da fila.
 void queue_destroy(CircularQueue *queue);
 
-// Sets a specific cell (0..length-1).
+// Define uma célula específica (0..length-1).
 void queue_set_cell(CircularQueue *queue, int index, char value);
 
-// Gets a specific cell. Returns ' ' if index is out of range.
+// Obtém uma célula específica. Retorna ' ' se o índice estiver fora do intervalo.
 char queue_get_cell(const CircularQueue *queue, int index);
 
-// Fills the queue with a repeating pattern defined by two characters and their run lengths.
-// Example: patternA='=', runA=2, patternB=' ', runB=4 will create waves of cars separated by gaps.
+// Preenche a fila com um padrão repetitivo definido por dois caracteres e seus comprimentos.
+// Exemplo: patternA='=', runA=2, patternB=' ', runB=4 criará ondas de carros separados por espaços.
 void queue_fill_pattern(CircularQueue *queue, char patternA, int runA, char patternB, int runB);
 
-// Rotates the queue by one cell to the left (index 0 goes to end).
+// Rotaciona a fila uma célula para a esquerda (índice 0 vai para o final).
 void queue_rotate_left(CircularQueue *queue);
 
-// Rotates the queue by one cell to the right (last index goes to 0).
+// Rotaciona a fila uma célula para a direita (último índice vai para 0).
 void queue_rotate_right(CircularQueue *queue);
 
-// Counts how many cells match a given character.
+// Conta quantas células correspondem a um caractere dado.
 int queue_count_char(const CircularQueue *queue, char ch);
 
-#endif // FILA_H
-
-
-
-
-
+#endif /* FILA_H */

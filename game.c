@@ -1,4 +1,3 @@
-// game.c
 #include "game.h"
 #include "utils.h"
 #include "raylib.h"  // Para GetFrameTime()
@@ -8,15 +7,12 @@
 #include <math.h>    // Para ceil()
 
 /* -------------------------------------------------------
-   CONFIG GERAL
+   CONFIGURAÇÃO GERAL
    - Mapa desce sozinho a cada SCROLL_TICKS frames.
-   - Player se move livre (WASD), não é ancorado.
+   - Player se move livre (WASD)
  ------------------------------------------------------- */
 #define SCROLL_TICKS 120   // ajuste a velocidade do scroll vertical
 
-/* -------------------------------------------------------
-   FORWARD DECLS
- ------------------------------------------------------- */
 static void fill_row_with_gaps(CircularQueue *q, char obstacle,
                                int obsMin, int obsMax,
                                int gapMin, int gapMax);
@@ -28,14 +24,14 @@ static void ensure_safe_area(GameState *state);
 static void scroll_world_down(GameState *state);
 static void move_rows(GameState *state);
 static void check_collision(GameState *state);
-// === 2 PLAYER MODE ===
+// Modo multiplayer
 static void check_collision_player(GameState *state, Player *player);
 // Sistema de vidas
 static void handle_death(GameState *state);
 static void collect_life_power(GameState *state);
 
 /* -------------------------------------------------------
-   PREENCHIMENTO COM OBSTÁCULOS + GAPSF
+   PREENCHIMENTO COM OBSTÁCULOS + GAPS
  ------------------------------------------------------- */
 static void fill_row_with_gaps(CircularQueue *q, char obstacle,
                                int obsMin, int obsMax,
@@ -98,7 +94,7 @@ static void create_obstacles(CircularQueue *queue, RowType type)
 }
 
 /* -------------------------------------------------------
-   GERA LINHA COMPLETA
+   GERA FILEIRA 
 ------------------------------------------------------- */
 static void generate_row(Row *row, int world_position, GameState *state)
 {
@@ -116,18 +112,18 @@ static void generate_row(Row *row, int world_position, GameState *state)
     row->direction = (utils_random_int(0, 1) == 0) ? -1 : 1;
 
     int baseMin = 15, baseMax = 25;
-    int accel = world_position / 20;     // acelera suave com o progresso
+    int accel = world_position / 20;     // Acelera suave com o progresso
     if (baseMin - accel < 8)  baseMin = 8;
     if (baseMax - accel < 12) baseMax = 12;
 
     row->speed_ticks = utils_random_int(baseMin, baseMax);
     row->tick_counter = 0;
-    row->moved_this_tick = 0;            // <<-- IMPORTANTE: inicia zerado
+    row->moved_this_tick = 0;            // Inicia zerado
 
     create_obstacles(row->queue, type);
     
     // Sistema de vidas: gera poder de vida periodicamente (apenas modo 1 jogador)
-    // IMPORTANTE: Só gera coração em linhas de grama para evitar obstáculos
+    // Só gera coração em linhas de grama para evitar obstáculos
     if (state && !state->two_players && world_position > 0 && type == ROW_GRASS) {
         // Verifica se já existe um poder de vida no mapa
         int has_life_power = 0;
@@ -166,7 +162,7 @@ static void generate_row(Row *row, int world_position, GameState *state)
 }
 
 /* -------------------------------------------------------
-   DESTROY
+   Destruir fileira
  ------------------------------------------------------- */
 static void row_destroy(Row *row)
 {
@@ -177,7 +173,7 @@ static void row_destroy(Row *row)
 }
 
 /* -------------------------------------------------------
-   ÁREA SEGURA (APENAS NO INÍCIO)
+   ÁREA SEGURA (No começo)
    - início: 3 linhas seguras (apenas nas primeiras 20 linhas)
    - depois: NENHUMA área segura - mapa desce normalmente
  ------------------------------------------------------- */
@@ -217,46 +213,43 @@ static void ensure_safe_area(GameState *state)
             }
         }
     }
-    // Depois das primeiras 20 linhas: NÃO faz nada - mapa desce normalmente
 }
 
 /* -------------------------------------------------------
    SCROLL DO MUNDO PRA BAIXO (GERA NOVA LINHA NO TOPO)
    - NÃO mexe no player_y (player livre)
    - Evita ponteiro duplicado / vazamento
-   - ZERA moved_this_tick (scroll não conta como “mover a linha”)
+   - Zera moved_this_tick (scroll não conta como “mover a linha”)
  ------------------------------------------------------- */
  static void scroll_world_down(GameState *state)
 {
     if (!state) return;
 
-    // --- DESCE TODAS AS LINHAS (SCROLL) ---
+    // Desce todas as linhas (scroll)
     for (int y = MAP_HEIGHT - 1; y > 0; --y) {
         row_destroy(&state->rows[y]);          // libera memória da linha atual
         state->rows[y] = state->rows[y - 1];   // copia a linha de cima para baixo
         state->rows[y - 1].queue = NULL;       // evita ponteiro duplicado (double free)
     }
 
-    // --- GERA UMA NOVA LINHA NO TOPO ---
+    // Gera uma nova linha no topo
     row_destroy(&state->rows[0]);              // libera topo antigo (se houver)
     generate_row(&state->rows[0], state->world_position, state); // cria nova linha de mundo
 
-    // --- ZERA FLAGS DE MOVIMENTO (scroll não conta como "mover linha") ---
+    // Zera flags de movimento (scroll não conta como "mover linha")
     for (int y = 0; y < MAP_HEIGHT; ++y) {
         state->rows[y].moved_this_tick = 0;
     }
 
     ensure_safe_area(state);                   // mantém as áreas seguras (grama)
 
-    // --- AVANÇO LÓGICO DO MUNDO ---
+    // Avanço
     state->world_position++;                   // contador global de linhas geradas
     state->world_head++;                       // uma nova linha "absoluta" nasceu no topo
 
-    // --- AJUSTE VISUAL DO PLAYER ---
     // O mapa sobe => o player "desce" 1 linha visualmente
     state->player_y++;
     
-    // === 2 PLAYER MODE ===
     // No modo 2 jogadores, atualiza ambos os jogadores durante o scroll
     if (state->two_players) {
         // Ajusta posição Y de ambos (mapa sobe = jogadores descem visualmente)
@@ -273,7 +266,7 @@ static void ensure_safe_area(GameState *state)
         state->p1.advanced_this_tick = 0;
         state->p2.advanced_this_tick = 0;
         
-        // Game over se AMBOS os jogadores saírem da tela (sairam por baixo)
+        // Game over se ambos os jogadores forem engolidos pela tela
         if (state->p1.y >= MAP_HEIGHT && state->p2.y >= MAP_HEIGHT) {
             state->game_over = 1;
         }
@@ -292,20 +285,19 @@ static void ensure_safe_area(GameState *state)
         state->min_abs_reached += 2;    // também move o limite de progresso
         state->advanced_this_tick = 0;  // neste frame, o player não subiu manualmente
 
-        // --- GAME OVER SE SAIU DA TELA ---
+        // Game over se for engolido pelo mapa
         if (state->player_y >= MAP_HEIGHT) {
             state->game_over = 1;
             return;
         }
     }
 
-    // --- FLAG DE RESPIRO ---
-    state->just_scrolled = 1;       // evita empurrão do rio neste frame
+    state->just_scrolled = 1;       //Flag que evita empurrão do rio neste frame
 }
 
-/* -------------------------------------------------------
+/* -------------
    INIT / RESET
- ------------------------------------------------------- */
+ ----------------*/
  void game_init(GameState *state, int width)
  {
      if (!state) return;
@@ -324,9 +316,9 @@ static void ensure_safe_area(GameState *state)
      state->player_y = MAP_HEIGHT - 2;
  
      // Estado base do jogo
-     state->score        = 0;
-     state->world_head   = 0;  // 0 linhas absolutas "nascidas" no topo ainda
-     state->game_over    = 0;
+     state->score = 0;
+     state->world_head = 0;  // 0 linhas absolutas "nascidas" no topo ainda
+     state->game_over = 0;
  
      // ===== Referenciais de progresso =====
      // Posição absoluta inicial do player no mundo
@@ -346,9 +338,8 @@ static void ensure_safe_area(GameState *state)
     state->renascer_timer = 0.0f;        // Timer zerado
     state->life_power_spawned = 0;       // Contador de linhas de grama desde último coração
      
-    // === 2 PLAYER MODE ===
+    // Modo multiplayer
     // Inicializa modo 1 jogador por padrão (two_players = 0)
-    // Mesmo assim, inicializa ambos os jogadores para facilitar transição
     state->two_players = 0;
     
     // Inicializa Jogador 1 (P1) - mesma posição do player principal
@@ -399,7 +390,7 @@ static void move_rows(GameState *state)
             row->tick_counter = 0;
             if (row->direction < 0) queue_rotate_left(row->queue);
             else                    queue_rotate_right(row->queue);
-            row->moved_this_tick = 1;  // <<-- moveu AGORA
+            row->moved_this_tick = 1;  // <<-- moveu
         } else {
             row->moved_this_tick = 0;  // <<-- não moveu
         }
@@ -448,8 +439,8 @@ static void handle_death(GameState *state)
         return;
     }
     
-    // IMPORTANTE: Se já está renascendo, não processa outra morte
-    // Isso previne múltiplas mortes no mesmo frame ou frames consecutivos
+    // Se já está renascendo, não processa outra morte
+    // Isso previne várias mortes no mesmo frame ou frames consecutivos
     if (state->renascendo) {
         return;
     }
@@ -533,7 +524,7 @@ static void check_collision(GameState *state)
         return;
     }
 
-    // Modo 1 jogador (compatibilidade)
+    // Modo 1 jogador 
     if (state->player_x < 0 || state->player_x >= MAP_WIDTH) { 
         handle_death(state);
         return; 
@@ -569,8 +560,8 @@ static void check_collision(GameState *state)
     }
 }
 
-// === 2 PLAYER MODE ===
 /**
+ * Modo 2 jogadores
  * Verifica colisão de um jogador específico com obstáculos
  * Similar à check_collision, mas para um único jogador
  * @param state Estado do jogo
@@ -783,24 +774,22 @@ static void check_collision_player(GameState *state, Player *player)
         state->game_over = 1;
     }
 
-    // --- LIMITES DA TELA (clamp) ---
+    // Limites da tela
     if (state->player_x < 0)               state->player_x = 0;
     if (state->player_x >= MAP_WIDTH)      state->player_x = MAP_WIDTH - 1;
     if (state->player_y < 0)               state->player_y = 0;
     if (state->player_y >= MAP_HEIGHT)     state->player_y = MAP_HEIGHT - 1;
 
-    // --- COLISÃO APÓS MOVER ---
+    //  Colisão após mover
     check_collision(state);
 
-    // --- FLAG: avançou verticalmente para cima neste frame? ---
-    // (Só consideramos "avanço" se o player realmente subiu 1 linha: y diminuiu.)
+    // Flag: só consideramos "avanço" se o player realmente subiu 1 linha: y diminuiu.)
     state->advanced_this_tick = (!state->game_over && state->player_y < old_y) ? 1 : 0;
 
     if (!state->game_over) {
         // Linha absoluta atual do player no mundo (independe do scroll visual).
         int abs_now = state->world_head + state->player_y;
 
-        // --- PONTUAÇÃO ROBUSTA ---
         // Pontua SOMENTE se houve avanço para cima neste frame E a linha absoluta é inédita
         // (abs_now menor que o melhor já alcançado).
         if (state->advanced_this_tick && abs_now < state->min_abs_reached) {
@@ -818,8 +807,8 @@ static void check_collision_player(GameState *state, Player *player)
     }
 }
 
-// === 2 PLAYER MODE ===
 /**
+ * Modo 2 jogadores
  * Ativa ou desativa o modo 2 jogadores
  * Quando ativado, sincroniza os jogadores com o estado atual do jogo
  */

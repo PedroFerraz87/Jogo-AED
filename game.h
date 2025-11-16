@@ -33,8 +33,8 @@ typedef struct Row {
     int moved_this_tick;    // NEW: 1 se rotacionou neste frame; 0 caso contrário
 } Row;
 
-// === 2 PLAYER MODE ===
 /**
+ * Modo multiplayer
  * Estrutura que representa um jogador individual no modo 2 jogadores
  * Cada jogador mantém seu próprio estado de posição, vida, pontuação e progresso
  */
@@ -80,8 +80,8 @@ void game_update(GameState *state);
 void game_render(const GameState *state);
 void game_handle_input(GameState *state, int key);
 
-// === 2 PLAYER MODE ===
 /**
+ * Modo multiplayer
  * Ativa ou desativa o modo 2 jogadores
  * @param state Estado do jogo
  * @param enabled 1 para ativar modo 2 jogadores, 0 para modo 1 jogador

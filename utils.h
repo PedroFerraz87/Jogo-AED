@@ -1,29 +1,18 @@
 #ifndef UTILS_H
 #define UTILS_H
 
-#include <time.h>
+#include <time.h>  // Para time() usado na inicialização do gerador aleatório
 
-// Cross-platform utilities for input, timing and screen control.
 
-void utils_sleep_ms(int ms);
+void utils_clear_screen(void); // Limpa a tela do terminal
 
-void utils_clear_screen(void);
-
-// Initialize terminal for non-blocking, no-echo keyboard input.
-void utils_enable_raw_mode(void);
-
-// Restore terminal to normal mode.
-void utils_disable_raw_mode(void);
-
-// Returns -1 if no key available; otherwise returns uppercase ASCII of the key.
-int utils_read_key_nonblock(void);
-
-// Returns integer in [min, max].
+/**
+ * @param min_value Valor mínimo (inclusivo)
+ * @param max_value Valor máximo (inclusivo)
+ * @return Número aleatório no intervalo [min_value, max_value]
+ * Descrição: Gera um número inteiro aleatório em um intervalo
+ * A semente do gerador aleatório é inicializada automaticamente na primeira chamada.
+ */
 int utils_random_int(int min_value, int max_value);
 
-#endif // UTILS_H
-
-
-
-
-
+#endif 
