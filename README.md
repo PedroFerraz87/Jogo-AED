@@ -18,5 +18,7 @@
 - game.c / game.h -> lógica do jogo
 - lista.c / lista.h -> lista simplesmente circular (estrutura de dados central)
 - ranking.c / ranking.h -> ranking e insertion sort (algoritmo de ordenação)
-- utils.c / utils.h -> utilitários (entrada não bloqueante, sleep, clear)
+- utils.c / utils.h -> utilitários (random e clear)
 - ranking.txt -> arquivo onde o ranking é salvo
+- raylib_view.c / raylib_view.h -> interface gráfica
+- sound.c / sound.h -> áudio do jogo
