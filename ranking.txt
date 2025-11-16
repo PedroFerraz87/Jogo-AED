@@ -39,6 +39,7 @@ caio;23
 lucas;23
 caio e raul;22
 deded;22
+efrsg;22
 pedro;22
 pedro;22
 pedro;22
@@ -48,6 +49,7 @@ qdvfbg;22
 wdsfnm,n;22
 DFB ;21
 dsfvf;21
+e3r4tgth;21
 pdro;21
 pedro;21
 pedro;21
@@ -170,6 +172,7 @@ rr;3
 sfds;3
 waefrg;3
 wqerfgh;3
+wqsdefv;3
 1qswd;2
 2;2
 caio;2
@@ -194,7 +197,4 @@ wdefrgthgnh;2
 4e;1
 adsfg;1
 caiao;1
-caio;1
-caio;1
-caio;1
 caio;1
