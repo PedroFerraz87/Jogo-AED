@@ -3,10 +3,9 @@
 
 #include "lista.h"
 
-// Map configuration
-#define MAP_WIDTH  28  // Reduzido de 31 para 28 para caber na tela (28*25 + 50*2 = 800px)
-#define MAP_HEIGHT 20  // mais linhas para melhor visualização
-// PLAYER_ROW não é usado no modelo atual de scroll livre, mas pode ficar
+// Config do mapa
+#define MAP_WIDTH  28 
+#define MAP_HEIGHT 20 
 #define PLAYER_ROW (MAP_HEIGHT - 1)
 
 // Symbols
@@ -14,9 +13,9 @@
 #define CHAR_CAR    '='
 #define CHAR_LOG    '~'
 #define CHAR_ROAD   '-'
-#define CHAR_RIVER  '\xE1' /* fallback se '≈' não for suportado */
+#define CHAR_RIVER  '\xE1' 
 #define CHAR_GRASS  '#'
-#define CHAR_LIFE   '+'    // Poder de vida
+#define CHAR_LIFE   '+'    
 
 typedef enum RowType {
     ROW_GRASS = 0,
@@ -30,7 +29,7 @@ typedef struct Row {
     int direction;          // -1 left, +1 right, 0 parado
     int speed_ticks;        // a cada N ticks a linha rotaciona
     int tick_counter;       // contador interno (0..speed_ticks-1)
-    int moved_this_tick;    // NEW: 1 se rotacionou neste frame; 0 caso contrário
+    int moved_this_tick;    // 1 se rotacionou neste frame; 0 caso contrário
 } Row;
 
 /**
@@ -69,7 +68,7 @@ typedef struct GameState {
     float renascer_timer;   // Tempo restante do renascimento (em segundos)
     int life_power_spawned; // Posição do mundo onde o último poder de vida foi gerado
     
-    // === 2 PLAYER MODE ===
+    // Modo multiplayer
     Player p1, p2;              // Estruturas dos jogadores (P1 e P2)
     int two_players;            // Flag: 1 = modo 2 jogadores ativo, 0 = modo 1 jogador
 } GameState;

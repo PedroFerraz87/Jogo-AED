@@ -19,7 +19,7 @@ static void fill_row_with_gaps(CircularQueue *q, char obstacle,
 static RowType generate_row_type(int world_position);
 static void create_obstacles(CircularQueue *queue, RowType type);
 static void generate_row(Row *row, int world_position, GameState *state);
-static void row_destroy(Row *row);
+static void row_destroy(Row *row);  
 static void ensure_safe_area(GameState *state);
 static void scroll_world_down(GameState *state);
 static void move_rows(GameState *state);

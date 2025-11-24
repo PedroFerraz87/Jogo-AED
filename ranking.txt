@@ -23,12 +23,14 @@ caio1;31
 pedrop;31
 RANK;30
 caioteste;29
+pedro;29
 swqwdf;28
 mudo;27
 oioioioioioi202020;27
 pedro;27
 pedro;27
 sdfg;27
+pedro;26
 pedro;26
 pedro;26
 pedro;25
@@ -70,6 +72,7 @@ wqefrg;12
 PEDRO;11
 edf;11
 ee;11
+pedro;11
 pedro;11
 pedro;11
 caio;10
@@ -167,6 +170,7 @@ pedro;3
 pedro;3
 pedro;3
 pedro;3
+pedro;3
 retghf;3
 rr;3
 sfds;3
@@ -194,7 +198,3 @@ sdfvbv;2
 teste1;2
 um];2
 wdefrgthgnh;2
-4e;1
-adsfg;1
-caiao;1
-caio;1
