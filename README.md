@@ -13,10 +13,15 @@
 2. gcc -Wall -std=c99 -DENABLE_RAYLIB main.c sound.c game.c lista.c ranking.c utils.c raylib_view.c -lraylib -lopengl32 -lgdi32 -lwinmm -o crossy.exe
 3. ./crossy.exe
 
+## Vídeo do jogo funcionando
+[Crossy Road](https://youtu.be/OWlCwM1jVuM)
+
 ## Arquivos importantes
 - main.c -> menu principal
 - game.c / game.h -> lógica do jogo
 - lista.c / lista.h -> lista simplesmente circular (estrutura de dados central)
 - ranking.c / ranking.h -> ranking e insertion sort (algoritmo de ordenação)
-- utils.c / utils.h -> utilitários (entrada não bloqueante, sleep, clear)
+- utils.c / utils.h -> utilitários (random e clear)
 - ranking.txt -> arquivo onde o ranking é salvo
+- raylib_view.c / raylib_view.h -> interface gráfica
+- sound.c / sound.h -> áudio do jogo
